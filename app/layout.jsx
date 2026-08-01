@@ -17,7 +17,7 @@ export default function RootLayout({ children }) {
       suppressContentEditableWarning
       suppressHydrationWarning
     >
-      <body className="w-full h-dvh p-0 m-0 overflow-hidden">
+      <body className="w-full h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))] p-0 m-0 overflow-hidden">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

@@ -4,7 +4,8 @@ import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox";
 import * as React from "react";
 import { cn, Hugeicons } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { UnfoldMoreIcon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Cancel01Icon, UnfoldMoreIcon } from "@hugeicons/core-free-icons";
 
 export const ComboboxContext = React.createContext({
   chipsRef: null,
@@ -235,7 +236,7 @@ export function ComboboxEmpty({ className, ...props }) {
   return (
     <ComboboxPrimitive.Empty
       className={cn(
-        "not-empty:p-3 text-center text-base text-muted-foreground sm:text-sm",
+        "not-empty:p-2 text-center text-base text-muted-foreground sm:text-sm",
         className,
       )}
       data-slot="combobox-empty"
@@ -258,7 +259,7 @@ export const ComboboxValue = ComboboxPrimitive.Value;
 
 export function ComboboxList({ className, ...props }) {
   return (
-    <div className="w-full overflow-auto pe-2.25">
+    <ScrollArea overscrollContain scrollbarGutter scrollFade>
       <ComboboxPrimitive.List
         className={cn(
           "not-empty:scroll-py-1 not-empty:px-1 not-empty:py-1 in-data-has-overflow-y:pe-3",
@@ -267,7 +268,7 @@ export function ComboboxList({ className, ...props }) {
         data-slot="combobox-list"
         {...props}
       />
-    </div>
+    </ScrollArea>
   );
 }
 
@@ -344,7 +345,7 @@ export function ComboboxChipRemove(props) {
       data-slot="combobox-chip-remove"
       {...props}
     >
-      <XIcon />
+      <Hugeicons icon={Cancel01Icon} />
     </ComboboxPrimitive.ChipRemove>
   );
 }

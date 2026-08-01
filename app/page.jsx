@@ -39,9 +39,68 @@ import {
 } from "@/lib/telegram";
 
 function errorMessage(error) {
-  if (typeof error === "string") return error;
-  if (error instanceof Error) return error.message;
-  return "Something went wrong while talking to Telegram.";
+  const message =
+    typeof error === "string"
+      ? error
+      : error instanceof Error
+        ? error.message
+        : "";
+  const normalized = message.toUpperCase();
+
+  if (
+    normalized.includes("PHONE_NUMBER_UNOCCUPIED") ||
+    normalized.includes("ACCOUNT WITH THIS NUMBER DOES NOT EXIST")
+  ) {
+    return "Account with this number does not exist. Make sure you entered the correct number.";
+  }
+  if (
+    normalized.includes("PHONE_NUMBER_INVALID") ||
+    normalized.includes("ENTER A VALID PHONE NUMBER")
+  ) {
+    return "Enter a valid phone number with the correct country code.";
+  }
+  if (
+    normalized.includes("PHONE_NUMBER_BANNED") ||
+    normalized.includes("CANNOT BE USED TO SIGN IN")
+  ) {
+    return "This phone number cannot be used to sign in to Telegram.";
+  }
+  if (
+    normalized.includes("PHONE_CODE_EXPIRED") ||
+    normalized.includes("LOGIN CODE HAS EXPIRED")
+  ) {
+    return "That login code has expired. Request a new code and try again.";
+  }
+  if (
+    normalized.includes("PHONE_CODE_INVALID") ||
+    normalized.includes("LOGIN CODE IS NOT VALID")
+  ) {
+    return "That login code is incorrect. Please enter the correct code.";
+  }
+  if (normalized.includes("TELEGRAM PASSWORD IS NOT VALID")) {
+    return "That Telegram password is not valid.";
+  }
+  if (normalized.includes("SIGN-UP MUST BE COMPLETED")) {
+    return "Telegram sign-up must be completed in an official client first.";
+  }
+  if (
+    normalized.includes("REQUEST A LOGIN CODE BEFORE") ||
+    normalized.includes("NO LONGER ACCEPTS THE PREVIOUS CODE TOKEN")
+  ) {
+    return "Request a new login code and try again.";
+  }
+  if (
+    normalized.includes("FLOOD_WAIT") ||
+    normalized.includes("PHONE_CODE_FLOOD") ||
+    normalized.includes("TOO MANY ATTEMPTS")
+  ) {
+    return "Too many attempts. Please wait a while before trying again.";
+  }
+  if (normalized.includes("NETWORK") || normalized.includes("CONNECTION")) {
+    return "Unable to reach Telegram. Check your internet connection and try again.";
+  }
+
+  return "Unable to complete this request. Please try again.";
 }
 
 function notify(type, title) {
@@ -51,6 +110,7 @@ function notify(type, title) {
 export default function Page() {
   const router = useRouter();
   const phoneInput = useRef(null);
+  const otpInput = useRef(null);
   const passwordInput = useRef(null);
   const [dialCode, setDialCode] = useState("+91");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -119,8 +179,13 @@ export default function Page() {
         router.replace("/hub");
         return;
       }
+      if (response?.state !== "code_sent") {
+        notify("error", "Unable to complete this request. Please try again.");
+        return;
+      }
       setCode("");
       setPhase("code");
+      otpInput.current?.focus();
       notify(
         "success",
         response?.message ?? "Verification code sent. Check Telegram.",
@@ -148,7 +213,11 @@ export default function Page() {
         notify("success", response.message);
         return;
       }
-      if (response?.state === "authorized") router.replace("/hub");
+      if (response?.state === "authorized") {
+        router.replace("/hub");
+        return;
+      }
+      notify("error", "Unable to complete this request. Please try again.");
     } catch (error) {
       console.error("[auth] submit_code failed:", error);
       notify("error", errorMessage(error));
@@ -168,7 +237,11 @@ export default function Page() {
     setBusy(true);
     try {
       const response = await checkPassword(password);
-      if (response?.state === "authorized") router.replace("/hub");
+      if (response?.state === "authorized") {
+        router.replace("/hub");
+        return;
+      }
+      notify("error", "Unable to complete this request. Please try again.");
     } catch (error) {
       console.error("[auth] check_password failed:", error);
       notify("error", errorMessage(error));
@@ -178,14 +251,18 @@ export default function Page() {
   }
 
   return (
-    <main className="grid h-dvh w-full grid-cols-2">
+    <main className="grid size-full grid-rows-4 md:grid-rows-1 md:grid-cols-2">
+      <div
+        className="fixed top-0 inset-x-0 h-9 tauri-drag-region"
+        data-tauri-drag-region
+      />
       <img
         alt="Dithered Image of View from Bastei"
         src="/dithered-image.png"
         className="size-full border-r object-cover"
         draggable={false}
       />
-      <div className="flex size-full items-center justify-center p-8">
+      <div className="row-span-3 flex size-full md:items-center justify-center px-8 py-12">
         <div className="flex w-full max-w-80 flex-col gap-8">
           <div className="flex items-center gap-2">
             <img
@@ -244,6 +321,7 @@ export default function Page() {
                           <ComboboxPopup
                             alignOffset={-4}
                             aria-label="Select country code"
+                            className="md:max-w-80"
                           >
                             <div className="border-b p-2">
                               <ComboboxInput
@@ -286,7 +364,18 @@ export default function Page() {
                   onSubmit={handleSubmitCode}
                 >
                   <p className="text-sm text-muted-foreground">
-                    Check Telegram for your code.
+                    Check Telegram ({dialCode} {phoneNumber}) for your code.{" "}
+                    <button
+                      type="button"
+                      className="cursor-pointer text-info transition-all hover:underline underline-offset-4"
+                      onClick={() => {
+                        setPhase("credentials");
+                        setPhoneNumber("");
+                        setCode("");
+                      }}
+                    >
+                      Change phone number
+                    </button>
                   </p>
                   <div className="space-y-2">
                     <Label>Enter OTP</Label>
@@ -301,6 +390,7 @@ export default function Page() {
                     >
                       {[0, 1, 2, 3, 4].map((index) => (
                         <OTPFieldInput
+                          ref={index === 0 ? otpInput : null}
                           key={index}
                           aria-label={`Character ${index + 1} of 5`}
                         />
@@ -367,7 +457,7 @@ export default function Page() {
                   module.openUrl("https://github.com/karticme/dacin"),
                 )
               }
-              className="cursor-pointer text-info transition-all hover:underline"
+              className="cursor-pointer text-info transition-all hover:underline underline-offset-4"
             >
               dacin
             </button>
@@ -382,7 +472,7 @@ export default function Page() {
                   module.openUrl("https://x.com/karticme"),
                 )
               }
-              className="cursor-pointer text-info transition-all hover:underline"
+              className="cursor-pointer text-info transition-all hover:underline underline-offset-4"
             >
               @karticme
             </button>

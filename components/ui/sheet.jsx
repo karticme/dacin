@@ -2,10 +2,10 @@
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { XIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, Hugeicons } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 
 export const Sheet = SheetPrimitive.Root;
 
@@ -95,7 +95,7 @@ export function SheetPopup({
               render={<Button size="icon" variant="ghost" />}
               {...closeProps}
             >
-              <XIcon />
+              <Hugeicons icon={Cancel01Icon} />
             </SheetPrimitive.Close>
           )}
         </SheetPrimitive.Popup>

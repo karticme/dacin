@@ -4,10 +4,46 @@ use grammers_client::SignInError;
 use std::time::Duration;
 use tauri::State;
 
+fn telegram_error(error: impl std::fmt::Display) -> String {
+    let detail = error.to_string().to_uppercase();
+
+    if detail.contains("PHONE_NUMBER_UNOCCUPIED") {
+        "Account with this number does not exist. Make sure you entered the correct number."
+    } else if detail.contains("PHONE_NUMBER_INVALID") {
+        "Enter a valid phone number with the correct country code."
+    } else if detail.contains("PHONE_NUMBER_BANNED") {
+        "This phone number cannot be used to sign in to Telegram."
+    } else if detail.contains("PHONE_CODE_EXPIRED") {
+        "That login code has expired. Request a new code and try again."
+    } else if detail.contains("PHONE_CODE_INVALID") {
+        "That login code is not valid."
+    } else if detail.contains("FLOOD_WAIT")
+        || detail.contains("PHONE_CODE_FLOOD")
+        || detail.contains("PHONE_NUMBER_FLOOD")
+    {
+        "Too many attempts. Please wait a while before trying again."
+    } else if detail.contains("NETWORK")
+        || detail.contains("CONNECTION")
+        || detail.contains("TIMED OUT")
+    {
+        "Unable to reach Telegram. Check your internet connection and try again."
+    } else {
+        "Telegram could not complete this request. Please try again."
+    }
+    .to_string()
+}
+
+fn valid_phone(phone: &str) -> bool {
+    let digits = phone.strip_prefix('+').unwrap_or(phone);
+    phone.starts_with('+')
+        && (8..=15).contains(&digits.len())
+        && digits.chars().all(|character| character.is_ascii_digit())
+}
+
 async fn check_authorized(client: &grammers_client::Client) -> Result<Option<bool>, String> {
     match tokio::time::timeout(Duration::from_secs(10), client.is_authorized()).await {
         Ok(Ok(authorized)) => Ok(Some(authorized)),
-        Ok(Err(error)) => Err(format!("Failed to verify Telegram session: {error}")),
+        Ok(Err(error)) => Err(telegram_error(error)),
         Err(_) => Ok(None),
     }
 }
@@ -21,9 +57,13 @@ pub(crate) async fn set_credentials(
     phone: String,
     state: State<'_, TelegramState>,
 ) -> Result<AuthResponse, String> {
+    if !valid_phone(&phone) {
+        return Err("Enter a valid phone number with the correct country code.".to_string());
+    }
+
     let credentials = StoredCredentials { phone };
-    util::save_credentials(&credentials).await?;
     let service = state.set_service(credentials).await?;
+    util::save_credentials(&service.credentials).await?;
 
     match check_authorized(&service.client).await? {
         Some(true) => Ok(authorized_message()),
@@ -45,7 +85,7 @@ pub(crate) async fn start_auth(state: State<'_, TelegramState>) -> Result<AuthRe
         .client
         .request_login_code(&service.credentials.phone, &util::telegram_api_hash()?)
         .await
-        .map_err(|error| format!("Failed to send login code: {error}"))?;
+        .map_err(telegram_error)?;
     *service.login_token.lock().await = Some(token);
     *service.password_token.lock().await = None;
 
@@ -94,7 +134,7 @@ pub(crate) async fn submit_code(
         }
         Err(SignInError::Other(error)) => {
             *service.login_token.lock().await = Some(token);
-            Err(error.to_string())
+            Err(telegram_error(error))
         }
     }
 }
@@ -129,7 +169,7 @@ pub(crate) async fn check_password(
             *service.password_token.lock().await = Some(password_token);
             Err("Telegram still requires a password for this session.".to_string())
         }
-        Err(SignInError::Other(error)) => Err(error.to_string()),
+        Err(SignInError::Other(error)) => Err(telegram_error(error)),
         Err(SignInError::InvalidCode) => Err(
             "Telegram no longer accepts the previous code token. Request a new code.".to_string(),
         ),
@@ -180,19 +220,18 @@ pub(crate) async fn restore_session(
 
 #[tauri::command]
 pub(crate) async fn is_authorized(state: State<'_, TelegramState>) -> Result<bool, String> {
-    Ok(check_authorized(&state.service().await?.client)
-        .await?
-        .unwrap_or(false))
+    let service = match state.service().await {
+        Ok(service) => service,
+        Err(_) => return Ok(false),
+    };
+
+    Ok(check_authorized(&service.client).await?.unwrap_or(false))
 }
 
 #[tauri::command]
 pub(crate) async fn sign_out(state: State<'_, TelegramState>) -> Result<AuthResponse, String> {
     let service = state.service().await?;
-    service
-        .client
-        .sign_out()
-        .await
-        .map_err(|error| format!("Failed to sign out: {error}"))?;
+    service.client.sign_out().await.map_err(telegram_error)?;
     *service.login_token.lock().await = None;
     *service.password_token.lock().await = None;
     Ok(util::status(AuthState::Ready, "Signed out."))

@@ -714,6 +714,7 @@ dependencies = [
  "grammers-client",
  "grammers-mtsender",
  "grammers-session",
+ "open",
  "serde",
  "serde_json",
  "tauri",

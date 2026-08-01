@@ -4,6 +4,11 @@ mod util;
 
 use dotenvy::dotenv;
 
+#[tauri::command]
+fn open_url(url: String) -> Result<(), String> {
+    open::that(&url).map_err(|e| format!("Failed to open URL: {e}"))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let _ = dotenv();
@@ -23,6 +28,7 @@ pub fn run() {
             auth::is_authorized,
             auth::restore_session,
             auth::sign_out,
+            open_url,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
