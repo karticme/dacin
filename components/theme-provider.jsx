@@ -1,18 +1,21 @@
 "use client";
 
-import { useEffect } from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { useTheme } from "next-themes";
 import {
   MenuRadioGroup,
   MenuRadioItem,
+  MenuShortcut,
   MenuSub,
   MenuSubPopup,
   MenuSubTrigger,
 } from "./ui/menu";
-// import { SunIcon } from "lucide-react";
-// import { ComputerIcon } from "lucide-react";
-// import { MoonIcon } from "lucide-react";
+import { cn, Hugeicons } from "@/lib/utils";
+import {
+  LayerMask01Icon,
+  Moon02Icon,
+  Sun03Icon,
+} from "@hugeicons/core-free-icons";
 
 export function ThemeProvider({ children, ...props }) {
   return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
@@ -23,15 +26,19 @@ export function ThemeToggle() {
 
   return (
     <MenuSub>
-      <MenuSubTrigger>
-        {/* {theme === "system" ? (
-          <ComputerIcon />
-        ) : theme === "light" ? (
-          <SunIcon />
-        ) : (
-          <MoonIcon />
-        )}{" "} */}
+      <MenuSubTrigger className="[&_svg]:ms-0!">
+        <Hugeicons
+          className={cn("size-3.5", theme === "system" && "-rotate-45")}
+          icon={
+            theme === "system"
+              ? LayerMask01Icon
+              : theme === "light"
+                ? Sun03Icon
+                : Moon02Icon
+          }
+        />
         Theme
+        <MenuShortcut>D</MenuShortcut>
       </MenuSubTrigger>
       <MenuSubPopup>
         <MenuRadioGroup value={theme} onValueChange={setTheme}>
@@ -42,46 +49,4 @@ export function ThemeToggle() {
       </MenuSubPopup>
     </MenuSub>
   );
-}
-
-export function ThemeShortcut() {
-  const { theme, setTheme } = useTheme();
-
-  const handleChange = () => {
-    const currentTheme = theme ?? "system";
-    setTheme(
-      currentTheme === "system"
-        ? "light"
-        : currentTheme === "light"
-          ? "dark"
-          : "system",
-    );
-  };
-
-  useEffect(() => {
-    const onKeyDown = (event) => {
-      if (event.key?.toLowerCase() !== "d" || event.repeat) {
-        return;
-      }
-
-      const target = event.target;
-      const tagName = target?.tagName?.toLowerCase();
-      if (
-        target?.isContentEditable ||
-        tagName === "input" ||
-        tagName === "textarea" ||
-        tagName === "select"
-      ) {
-        return;
-      }
-
-      event.preventDefault();
-      handleChange();
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [theme]);
-
-  return <div className="hidden fixed" />;
 }

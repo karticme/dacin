@@ -27,6 +27,18 @@ pub(crate) struct AuthResponse {
     pub message: String,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct TelegramProfile {
+    pub id: i64,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub full_name: String,
+    pub username: Option<String>,
+    pub phone: Option<String>,
+    pub photo_bytes: Option<Vec<u8>>,
+}
+
 pub(crate) struct TelegramService {
     pub client: Client,
     pub credentials: StoredCredentials,

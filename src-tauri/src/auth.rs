@@ -52,6 +52,26 @@ fn authorized_message() -> AuthResponse {
     util::status(AuthState::Authorized, "Telegram session is active.")
 }
 
+async fn profile_photo_bytes(
+    client: &grammers_client::Client,
+    photo: Option<grammers_client::media::ChatPhoto>,
+) -> Option<Vec<u8>> {
+    const MAX_PROFILE_PHOTO_BYTES: usize = 2 * 1024 * 1024;
+
+    let photo = photo?;
+    let mut download = client.iter_download(&photo);
+    let mut bytes = Vec::new();
+
+    while let Ok(Some(chunk)) = download.next().await {
+        if bytes.len() + chunk.len() > MAX_PROFILE_PHOTO_BYTES {
+            return None;
+        }
+        bytes.extend_from_slice(&chunk);
+    }
+
+    (!bytes.is_empty()).then_some(bytes)
+}
+
 #[tauri::command]
 pub(crate) async fn set_credentials(
     phone: String,
@@ -226,6 +246,33 @@ pub(crate) async fn is_authorized(state: State<'_, TelegramState>) -> Result<boo
     };
 
     Ok(check_authorized(&service.client).await?.unwrap_or(false))
+}
+
+#[tauri::command]
+pub(crate) async fn get_profile(
+    state: State<'_, TelegramState>,
+) -> Result<TelegramProfile, String> {
+    let service = state.service().await?;
+    if !matches!(check_authorized(&service.client).await?, Some(true)) {
+        return Err("Sign in to Telegram before loading your profile.".to_string());
+    }
+
+    let user = service.client.get_me().await.map_err(telegram_error)?;
+    let profile = TelegramProfile {
+        id: user.id().bare_id(),
+        first_name: user.first_name().map(str::to_owned),
+        last_name: user.last_name().map(str::to_owned),
+        full_name: user.full_name(),
+        username: user.username().map(str::to_owned),
+        phone: user.phone().map(str::to_owned),
+        photo_bytes: profile_photo_bytes(
+            &service.client,
+            grammers_client::peer::Peer::User(user).photo(false).await,
+        )
+        .await,
+    };
+
+    Ok(profile)
 }
 
 #[tauri::command]

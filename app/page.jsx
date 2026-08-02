@@ -37,6 +37,7 @@ import {
   startAuth,
   submitCode,
 } from "@/lib/telegram";
+import { fetchAndCacheProfile } from "@/lib/utils";
 
 function errorMessage(error) {
   const message =
@@ -154,6 +155,11 @@ export default function Page() {
     if (phase === "password") passwordInput.current?.focus();
   }, [phase]);
 
+  async function finishLogin() {
+    await fetchAndCacheProfile();
+    router.replace("/hub");
+  }
+
   async function handleSendCode(event) {
     event.preventDefault();
     const localNumber = phoneNumber.replace(/\D/g, "");
@@ -214,7 +220,7 @@ export default function Page() {
         return;
       }
       if (response?.state === "authorized") {
-        router.replace("/hub");
+        await finishLogin();
         return;
       }
       notify("error", "Unable to complete this request. Please try again.");
@@ -238,7 +244,7 @@ export default function Page() {
     try {
       const response = await checkPassword(password);
       if (response?.state === "authorized") {
-        router.replace("/hub");
+        await finishLogin();
         return;
       }
       notify("error", "Unable to complete this request. Please try again.");
@@ -464,7 +470,7 @@ export default function Page() {
             on GitHub.
           </div>
           <div className="-mt-4 flex items-center gap-1 text-xs text-muted-foreground">
-            Created by
+            Made with ❤️ by
             <button
               type="button"
               onClick={() =>

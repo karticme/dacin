@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import HubSidebar from "@/components/hub-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { isAuthorized } from "@/lib/telegram";
+import ActionBar from "@/components/action-bar";
 
 export default function Layout({ children }) {
   const router = useRouter();
@@ -38,7 +39,10 @@ export default function Layout({ children }) {
   return (
     <SidebarProvider>
       <HubSidebar />
-      <SidebarInset>{children}</SidebarInset>
+      <SidebarInset>
+        <ActionBar />
+        {children}
+      </SidebarInset>
     </SidebarProvider>
   );
 }

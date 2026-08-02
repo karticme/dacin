@@ -1,8 +1,9 @@
 import { CalSansText, CalSansUI } from "@calcom/cal-sans-ui";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { ThemeProvider, ThemeShortcut } from "@/components/theme-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
+import { UtilityProvider } from "@/components/utility-provider";
 
 export const metadata = {
   title: "Dacin",
@@ -25,7 +26,7 @@ export default function RootLayout({ children }) {
           disableTransitionOnChange
         >
           <ToastProvider position="bottom-center">{children}</ToastProvider>
-          <ThemeShortcut />
+          <UtilityProvider />
         </ThemeProvider>
       </body>
     </html>

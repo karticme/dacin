@@ -26,6 +26,7 @@ pub fn run() {
             auth::submit_code,
             auth::check_password,
             auth::is_authorized,
+            auth::get_profile,
             auth::restore_session,
             auth::sign_out,
             open_url,
