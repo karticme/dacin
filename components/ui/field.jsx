@@ -48,7 +48,7 @@ export function FieldDescription({ className, ...props }) {
 export function FieldError({ className, ...props }) {
   return (
     <FieldPrimitive.Error
-      className={cn("text-destructive-foreground text-xs", className)}
+      className={cn("text-destructive text-xs", className)}
       data-slot="field-error"
       {...props}
     />

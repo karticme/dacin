@@ -38,6 +38,9 @@ import {
   submitCode,
 } from "@/lib/telegram";
 import { fetchAndCacheProfile } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Group, GroupSeparator } from "@/components/ui/group";
+import { UnfoldMoreIcon } from "@hugeicons/core-free-icons";
 
 function errorMessage(error) {
   const message =
@@ -259,7 +262,7 @@ export default function Page() {
   return (
     <main className="grid size-full grid-rows-4 md:grid-rows-1 md:grid-cols-2">
       <div
-        className="fixed top-0 inset-x-0 h-9 tauri-drag-region"
+        className="fixed top-0 inset-x-0 h-10 tauri-drag-region"
         data-tauri-drag-region
       />
       <img
@@ -295,8 +298,59 @@ export default function Page() {
                   </p>
                   <div className="space-y-2">
                     <Label htmlFor="phone-number">Phone Number</Label>
-                    <InputGroup>
-                      <InputGroupInput
+                    <Group className="w-full">
+                      <Combobox
+                        value={dialCode}
+                        onValueChange={setDialCode}
+                        items={countryCodes}
+                      >
+                        <ComboboxTrigger
+                          render={
+                            <Button
+                              variant="outline"
+                              className="justify-between gap-2 active:translate-0"
+                            />
+                          }
+                          disabled={busy}
+                        >
+                          <ComboboxValue />
+                          <Hugeicons
+                            icon={UnfoldMoreIcon}
+                            className="text-muted-foreground/80"
+                          />
+                        </ComboboxTrigger>
+                        <ComboboxPopup
+                          aria-label="Select country code"
+                          className="md:max-w-80 rounded-t-xl"
+                        >
+                          <div className="border-b p-2">
+                            <ComboboxInput
+                              className="rounded-md before:rounded-[calc(var(--radius-md)-1px)]"
+                              placeholder="e.g. India"
+                              showTrigger={false}
+                              startAddon={<Hugeicons icon={Search01Icon} />}
+                            />
+                          </div>
+                          <ComboboxEmpty>No countries found.</ComboboxEmpty>
+                          <ComboboxList>
+                            {(country) => (
+                              <ComboboxItem
+                                key={country.code}
+                                value={country.dial_code}
+                              >
+                                <div className="-me-1.5 flex items-center gap-2">
+                                  {country.emoji}&nbsp; {country.name}
+                                  <span className="ml-auto font-light text-muted-foreground">
+                                    {country.dial_code}
+                                  </span>
+                                </div>
+                              </ComboboxItem>
+                            )}
+                          </ComboboxList>
+                        </ComboboxPopup>
+                      </Combobox>
+                      <GroupSeparator />
+                      <Input
                         id="phone-number"
                         ref={phoneInput}
                         value={phoneNumber}
@@ -306,57 +360,7 @@ export default function Page() {
                         inputMode="tel"
                         disabled={busy}
                       />
-                      <InputGroupAddon>
-                        <Combobox
-                          value={dialCode}
-                          onValueChange={setDialCode}
-                          items={countryCodes}
-                        >
-                          <ComboboxTrigger
-                            render={
-                              <Button
-                                className="w-full justify-between gap-2 rounded-sm font-normal"
-                                size="xs"
-                                variant="secondary"
-                              />
-                            }
-                            disabled={busy}
-                          >
-                            <ComboboxValue />
-                          </ComboboxTrigger>
-                          <ComboboxPopup
-                            alignOffset={-4}
-                            aria-label="Select country code"
-                            className="md:max-w-80"
-                          >
-                            <div className="border-b p-2">
-                              <ComboboxInput
-                                className="rounded-md before:rounded-[calc(var(--radius-md)-1px)]"
-                                placeholder="e.g. India"
-                                showTrigger={false}
-                                startAddon={<Hugeicons icon={Search01Icon} />}
-                              />
-                            </div>
-                            <ComboboxEmpty>No countries found.</ComboboxEmpty>
-                            <ComboboxList>
-                              {(country) => (
-                                <ComboboxItem
-                                  key={country.code}
-                                  value={country.dial_code}
-                                >
-                                  <div className="-me-1.5 flex items-center gap-2">
-                                    {country.emoji}&nbsp; {country.name}
-                                    <span className="ml-auto font-light text-muted-foreground">
-                                      {country.dial_code}
-                                    </span>
-                                  </div>
-                                </ComboboxItem>
-                              )}
-                            </ComboboxList>
-                          </ComboboxPopup>
-                        </Combobox>
-                      </InputGroupAddon>
-                    </InputGroup>
+                    </Group>
                   </div>
                   <Button type="submit" disabled={busy}>
                     {busy && <Spinner />} {busy ? "Sending OTP..." : "Send OTP"}

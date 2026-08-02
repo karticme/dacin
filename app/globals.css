@@ -151,13 +151,13 @@
 }
 
 :root {
-  --destructive-foreground: var(--color-red-700);
+  --destructive-foreground: var(--color-red-50);
   --info: var(--color-blue-500);
-  --info-foreground: var(--color-blue-700);
+  --info-foreground: var(--color-blue-50);
   --success: var(--color-emerald-500);
-  --success-foreground: var(--color-emerald-700);
+  --success-foreground: var(--color-emerald-50);
   --warning: var(--color-amber-500);
-  --warning-foreground: var(--color-amber-700);
+  --warning-foreground: var(--color-amber-50);
   --background: var(--color-white);
   --foreground: var(--color-neutral-800);
   --card: var(--color-white);
@@ -204,13 +204,13 @@
 }
 
 .dark {
-  --destructive-foreground: var(--color-red-400);
+  --destructive-foreground: var(--color-red-50);
   --info: var(--color-blue-500);
-  --info-foreground: var(--color-blue-400);
+  --info-foreground: var(--color-blue-50);
   --success: var(--color-emerald-500);
-  --success-foreground: var(--color-emerald-400);
+  --success-foreground: var(--color-emerald-50);
   --warning: var(--color-amber-500);
-  --warning-foreground: var(--color-amber-400);
+  --warning-foreground: var(--color-amber-50);
   --background: color-mix(
     in srgb,
     var(--color-neutral-950) 95%,
