@@ -79,7 +79,7 @@ export function DialogPopup({
           {showCloseButton && (
             <DialogPrimitive.Close
               aria-label="Close"
-              className="absolute end-2 top-2"
+              className="absolute inset-e-2 top-2"
               render={<Button size="icon" variant="ghost" />}
               {...closeProps}
             >
@@ -135,10 +135,7 @@ export function DialogFooter({
 export function DialogTitle({ className, ...props }) {
   return (
     <DialogPrimitive.Title
-      className={cn(
-        "font-heading font-semibold text-xl leading-none",
-        className,
-      )}
+      className={cn("font-semibold text-xl leading-none", className)}
       data-slot="dialog-title"
       {...props}
     />

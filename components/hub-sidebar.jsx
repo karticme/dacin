@@ -23,16 +23,16 @@ import {
   MenuPopup,
   MenuSeparator,
   MenuShortcut,
-} from "./ui/menu";
+} from "@/components/ui/menu";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
-import { ThemeToggle } from "./theme-provider";
+import { ThemeToggle } from "@/components/theme-provider";
 import { KeyboardIcon } from "@hugeicons/core-free-icons";
 import { Logout01Icon } from "@hugeicons/core-free-icons";
 import { signOut } from "@/lib/telegram";
 import { clearProfileCache, getProfile } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
-import { Skeleton } from "./ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function HubSidebar({ ...props }) {
   const [loading, setLoading] = useState(true);

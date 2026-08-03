@@ -9,7 +9,7 @@ import {
   MenuSub,
   MenuSubPopup,
   MenuSubTrigger,
-} from "./ui/menu";
+} from "@/components/ui/menu";
 import { cn, Hugeicons } from "@/lib/utils";
 import {
   LayerMask01Icon,

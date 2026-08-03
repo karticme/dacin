@@ -139,11 +139,11 @@ export default function Page() {
         }
         if (response?.state === "code_sent") setPhase("code");
         if (response?.state === "needs_password") setPhase("password");
+        if (active) setCheckingSession(false);
       } catch (error) {
         if (!active || isTauriInvokeTimeout(error)) return;
         console.error("[session] restore_session failed:", error);
         notify("error", errorMessage(error));
-      } finally {
         if (active) setCheckingSession(false);
       }
     }
@@ -280,9 +280,7 @@ export default function Page() {
               className="size-10"
               draggable={false}
             />
-            <h1 className="font-heading text-xl font-semibold">
-              Welcome to Dacin!
-            </h1>
+            <h1 className="text-xl font-semibold">Welcome to Dacin!</h1>
           </div>
 
           {checkingSession ? (

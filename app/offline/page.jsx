@@ -40,7 +40,14 @@ export default function Offline() {
     toastManager.add({
       id: "internet-connection",
       type: "success",
-      title: "Connection Restored. You are now online.",
+      title: "Connection Restored!",
+      description: " You are now online.",
+      actionProps: {
+        children: "Ok",
+        onClick: () => {
+          toastManager.close("internet-connection");
+        },
+      },
     });
 
   return (

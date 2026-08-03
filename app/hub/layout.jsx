@@ -6,9 +6,12 @@ import HubSidebar from "@/components/hub-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { isAuthorized } from "@/lib/telegram";
 import ActionBar from "@/components/action-bar";
+import { Tabs } from "@/components/ui/tabs";
+import PathFooter from "@/components/path-footer";
 
 export default function Layout({ children }) {
   const router = useRouter();
+  const [layout, setLayout] = useState("grid");
   const [authorized, setAuthorized] = useState(null);
 
   useEffect(() => {
@@ -39,10 +42,13 @@ export default function Layout({ children }) {
   return (
     <SidebarProvider>
       <HubSidebar />
-      <SidebarInset>
-        <ActionBar />
-        {children}
-      </SidebarInset>
+      <Tabs value={layout} onValueChange={setLayout}>
+        <SidebarInset>
+          <ActionBar />
+          <main className="flex-1">{children}</main>
+          <PathFooter />
+        </SidebarInset>
+      </Tabs>
     </SidebarProvider>
   );
 }

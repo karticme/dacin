@@ -124,7 +124,7 @@ export function CardHeader({ className, render, ...props }) {
 
 export function CardTitle({ className, render, ...props }) {
   const defaultProps = {
-    className: cn("font-heading font-semibold text-lg leading-none", className),
+    className: cn("font-semibold text-lg leading-none", className),
     "data-slot": "card-title",
   };
 

@@ -3,7 +3,7 @@
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { toastManager } from "./ui/toast";
+import { toastManager } from "@/components/ui/toast";
 
 export function UtilityProvider() {
   const router = useRouter();

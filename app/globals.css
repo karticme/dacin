@@ -1,3 +1,4 @@
+@import url("https://rsms.me/inter/inter.css");
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -6,12 +7,6 @@
 
 @theme inline {
   --animate-skeleton: skeleton 2s -1s infinite linear;
-  --font-heading: var(
-    --font-cal-sans-text,
-    ui-sans-serif,
-    system-ui,
-    sans-serif
-  );
   --animate-caret-blink: 1s ease-out infinite caret-blink;
   --animate-toast-success-odd: toast-success-odd 0.32s
     cubic-bezier(0.5, 1, 0.89, 1);
@@ -20,8 +15,8 @@
   --animate-toast-error-odd: toast-error-odd 0.28s cubic-bezier(0.5, 1, 0.89, 1);
   --animate-toast-error-even: toast-error-even 0.28s
     cubic-bezier(0.5, 1, 0.89, 1);
-  --font-mono: var(--font-mono, monospace);
-  --font-sans: var(--font-cal-sans-ui, ui-sans-serif, system-ui, sans-serif);
+  --font-mono: monospace;
+  --font-sans: "InterVariable", ui-sans-serif, system-ui, sans-serif;
   --color-code-highlight: var(--code-highlight);
   --code-foreground: var(--code-foreground);
   --color-code: var(--code);

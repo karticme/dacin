@@ -91,7 +91,7 @@ export function SheetPopup({
           {showCloseButton && (
             <SheetPrimitive.Close
               aria-label="Close"
-              className="absolute end-2 top-2"
+              className="absolute inset-e-2 top-2"
               render={<Button size="icon" variant="ghost" />}
               {...closeProps}
             >
@@ -147,10 +147,7 @@ export function SheetFooter({
 export function SheetTitle({ className, ...props }) {
   return (
     <SheetPrimitive.Title
-      className={cn(
-        "font-heading font-semibold text-xl leading-none",
-        className,
-      )}
+      className={cn("font-semibold text-xl leading-none", className)}
       data-slot="sheet-title"
       {...props}
     />

@@ -79,7 +79,7 @@ export function EmptyMedia({ className, variant = "default", ...props }) {
 export function EmptyTitle({ className, ...props }) {
   return (
     <div
-      className={cn("font-heading font-semibold text-xl", className)}
+      className={cn("font-semibold text-xl", className)}
       data-slot="empty-title"
       {...props}
     />
