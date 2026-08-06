@@ -96,12 +96,12 @@ export default function ShortcutsModal({ open, onOpenChange }) {
           ].map((item) => {
             if (item.type === "category") {
               return (
-                <p
+                <div
                   key={item.label}
-                  className="text-xs font-medium text-muted-foreground mb-3 not-first:mt-6 tracking-wider"
+                  className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-2 not-first:mt-4 tracking-wider uppercase"
                 >
-                  {item.label}
-                </p>
+                  {item.label} <hr className="flex-1 bg-border" />
+                </div>
               );
             } else {
               return (
