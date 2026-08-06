@@ -405,7 +405,7 @@ export function SidebarGroupLabel({ className, render, ...props }) {
 export function SidebarGroupAction({ className, render, ...props }) {
   const defaultProps = {
     className: cn(
-      "absolute top-3.5 right-3 flex aspect-square w-5 items-center justify-center rounded-lg p-0 text-sidebar-foreground outline-hidden ring-sidebar-ring transition-transform hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg:not([class*='size-'])]:size-4 [&>svg]:shrink-0",
+      "absolute top-1 right-3 flex aspect-square w-6 items-center justify-center rounded-lg p-1 text-sidebar-foreground outline-hidden ring-sidebar-ring transition-transform hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg:not([class*='size-'])]:size-4 [&>svg]:shrink-0 cursor-pointer",
       // Increases the hit area of the button on mobile.
       "after:absolute after:-inset-2 md:after:hidden",
       "group-data-[collapsible=icon]:hidden",
@@ -497,7 +497,6 @@ export function SidebarMenuButton({
       <TooltipTrigger render={buttonElement} />
       <TooltipPopup
         align="center"
-        hidden={state !== "collapsed" || isMobile}
         side="right"
         {...tooltip}
       />
@@ -545,6 +544,7 @@ export function SidebarMenuBadge({ className, ...props }) {
         "peer-data-[size=default]/menu-button:top-1.5",
         "peer-data-[size=lg]/menu-button:top-2.5",
         "group-data-[collapsible=icon]:hidden",
+        "[&>svg]:size-3.5",
         className,
       )}
       data-sidebar="menu-badge"

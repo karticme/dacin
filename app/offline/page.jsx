@@ -12,7 +12,7 @@ import {
 import { toastManager } from "@/components/ui/toast";
 import { Hugeicons } from "@/lib/utils";
 import { WifiOff01Icon } from "@hugeicons/core-free-icons";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 
 export default function Offline() {
@@ -20,8 +20,8 @@ export default function Offline() {
 
   useEffect(() => {
     const hO = () => {
-      router.push("/hub");
       toast();
+      redirect("/hub");
     };
     window.addEventListener("online", hO);
     return () => window.removeEventListener("online", hO);
@@ -29,8 +29,8 @@ export default function Offline() {
 
   function handleRefresh() {
     if (navigator.onLine) {
-      router.push("/hub");
       toast();
+      redirect("/hub");
     } else {
       router.refresh();
     }

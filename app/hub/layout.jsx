@@ -7,7 +7,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { isAuthorized } from "@/lib/telegram";
 import ActionBar from "@/components/action-bar";
 import { Tabs } from "@/components/ui/tabs";
-import PathFooter from "@/components/path-footer";
+import CurrentPath from "@/components/current-path";
 
 export default function Layout({ children }) {
   const router = useRouter();
@@ -46,7 +46,7 @@ export default function Layout({ children }) {
         <SidebarInset>
           <ActionBar />
           <main className="flex-1">{children}</main>
-          <PathFooter />
+          <CurrentPath />
         </SidebarInset>
       </Tabs>
     </SidebarProvider>

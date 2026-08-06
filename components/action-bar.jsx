@@ -20,6 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import {
+  Tooltip,
+  TooltipPopup,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
 
 const SORT_OPTIONS = [
   { value: "name", label: "Name" },
@@ -33,52 +39,79 @@ export default function ActionBar() {
 
   return (
     <header
-      className="w-full h-10 bg-sidebar flex items-center justify-between border-b px-1.5 tauri-drag-region"
+      className="w-full h-10 bg-sidebar flex items-center justify-between border-b px-2 tauri-drag-region"
       data-tauri-drag-region
     >
       <div className="flex items-center gap-2">
-        <div className="space-x-1">
-          <Button size="icon-sm" variant="ghost">
-            <Hugeicons icon={ArrowLeft01Icon} />
-          </Button>
-          <Button size="icon-sm" variant="ghost">
-            <Hugeicons icon={ArrowRight01Icon} />
-          </Button>
-        </div>
+        <Tooltip>
+          <TooltipTrigger render={<div className="space-x-0.5" />}>
+            <Button size="icon-sm" variant="ghost">
+              <Hugeicons icon={ArrowLeft01Icon} />
+            </Button>
+            <Button size="icon-sm" variant="ghost">
+              <Hugeicons icon={ArrowRight01Icon} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipPopup>See folders you viewed previously</TooltipPopup>
+        </Tooltip>
         <h1 className="text-sm">Folder</h1>
       </div>
       <div className="flex items-center gap-1">
-        <Select
-          items={SORT_OPTIONS}
-          value={sortOrder}
-          onValueChange={setSortOrder}
-        >
-          <SelectTrigger
-            size="sm"
-            className="min-w-24 [&>span]:data-[slot=select-icon]:hidden"
+        <TooltipProvider>
+          <Select
+            items={SORT_OPTIONS}
+            value={sortOrder}
+            onValueChange={setSortOrder}
           >
-            <Hugeicons icon={FilterMailSquareIcon} />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectPopup>
-            <SelectGroup>
-              <SelectGroupLabel>Sort by</SelectGroupLabel>
-              {SORT_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectPopup>
-        </Select>
-        <TabsList>
-          <TabsTab className="size-6!" value="grid">
-            <Hugeicons icon={DashboardSquare01Icon} />
-          </TabsTab>
-          <TabsTab className="size-6!" value="list">
-            <Hugeicons icon={LeftToRightListDashIcon} />
-          </TabsTab>
-        </TabsList>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <SelectTrigger
+                    size="sm"
+                    className="min-w-24 [&>span]:data-[slot=select-icon]:hidden"
+                  />
+                }
+              >
+                <Hugeicons icon={FilterMailSquareIcon} />
+                <SelectValue />
+              </TooltipTrigger>
+              <TooltipPopup>Sort A -&gt; Z</TooltipPopup>
+            </Tooltip>
+            <SelectPopup>
+              <SelectGroup>
+                <SelectGroupLabel>Sort by</SelectGroupLabel>
+                {SORT_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectPopup>
+          </Select>
+          <TabsList>
+            {[
+              {
+                id: "grid",
+                label: "Grid",
+                icon: DashboardSquare01Icon,
+              },
+              {
+                id: "list",
+                label: "List",
+                icon: LeftToRightListDashIcon,
+              },
+            ].map((tab) => (
+              <Tooltip key={tab.id}>
+                <TooltipTrigger
+                  render={<TabsTab className="size-6!" value={tab.id} />}
+                >
+                  <Hugeicons icon={tab.icon} />
+                </TooltipTrigger>
+                <TooltipPopup>View as {tab.label}</TooltipPopup>
+              </Tooltip>
+            ))}
+          </TabsList>
+        </TooltipProvider>
       </div>
     </header>
   );

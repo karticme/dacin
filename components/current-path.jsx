@@ -13,10 +13,10 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Menu, MenuItem, MenuPopup, MenuTrigger } from "@/components/ui/menu";
 
-export default function PathFooter() {
+export default function CurrentPath() {
   return (
     <footer className="w-full h-10 bg-sidebar flex items-center justify-between border-t px-3.5">
-      <Breadcrumb>
+      <Breadcrumb className="mb-px">
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink render={<a href="/" />}>Home</BreadcrumbLink>
