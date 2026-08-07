@@ -1,4 +1,4 @@
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Cancel01Icon,
   Eraser01Icon,
@@ -12,9 +12,13 @@ import {
   TooltipTrigger,
   TooltipPopup,
   TooltipProvider,
-} from "./ui/tooltip";
+} from "@/components/ui/tooltip";
 import { useEffect, useRef, useState } from "react";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 
 export default function SearchUploadTray({ loading }) {
   const [searchOn, setSearchOn] = useState(false);

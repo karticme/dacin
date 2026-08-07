@@ -495,11 +495,7 @@ export function SidebarMenuButton({
   return (
     <Tooltip>
       <TooltipTrigger render={buttonElement} />
-      <TooltipPopup
-        align="center"
-        side="right"
-        {...tooltip}
-      />
+      <TooltipPopup align="center" side="right" {...tooltip} />
     </Tooltip>
   );
 }

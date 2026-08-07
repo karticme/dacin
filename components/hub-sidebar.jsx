@@ -1,11 +1,18 @@
 "use client";
 
 import {
+  HardDriveIcon,
+  KeyboardIcon,
+  LockKeyIcon,
+  Settings01Icon,
+  ArrowRight01Icon,
+  Logout01Icon,
+} from "@hugeicons/core-free-icons";
+import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
@@ -16,12 +23,6 @@ import {
 } from "@/components/ui/sidebar";
 import { cn, Hugeicons } from "@/lib/utils";
 import {
-  HardDriveIcon,
-  KeyboardIcon,
-  LockKeyIcon,
-  Settings01Icon,
-} from "@hugeicons/core-free-icons";
-import {
   DropdownMenu,
   DropdownMenuTrigger,
   MenuGroup,
@@ -31,18 +32,16 @@ import {
   MenuSeparator,
   MenuShortcut,
 } from "@/components/ui/menu";
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { ThemeToggle } from "@/components/theme-provider";
-import { Logout01Icon } from "@hugeicons/core-free-icons";
 import { signOut } from "@/lib/telegram";
 import { clearProfileCache, getProfile } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import SearchUploadTray from "./search-upload-tray";
-import { Tooltip, TooltipPopup, TooltipTrigger } from "./ui/tooltip";
+import SearchUploadTray from "@/components/search-upload-tray";
+import { Tooltip, TooltipPopup, TooltipTrigger } from "@/components/ui/tooltip";
 import AddChannelModal from "@/components/models/add-channel";
-import ShortcutsModal from "./models/shortcuts";
+import ShortcutsModal from "@/components/models/shortcuts";
 import { isMac } from "@/lib/utils";
 
 export default function HubSidebar({ ...props }) {

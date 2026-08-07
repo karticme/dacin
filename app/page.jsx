@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  Search01Icon,
+  ViewIcon,
+  ViewOffIcon,
+  UnfoldMoreIcon,
+} from "@hugeicons/core-free-icons";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -21,11 +27,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Hugeicons } from "@/lib/utils";
 import { countryCodes } from "@/lib/country-codes";
-import {
-  Search01Icon,
-  ViewIcon,
-  ViewOffIcon,
-} from "@hugeicons/core-free-icons";
+
 import { OTPField, OTPFieldInput } from "@/components/ui/otp-field";
 import { Spinner } from "@/components/ui/spinner";
 import { toastManager } from "@/components/ui/toast";
@@ -40,7 +42,6 @@ import {
 import { fetchAndCacheProfile } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Group, GroupSeparator } from "@/components/ui/group";
-import { UnfoldMoreIcon } from "@hugeicons/core-free-icons";
 
 function errorMessage(error) {
   const message =

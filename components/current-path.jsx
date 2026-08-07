@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Breadcrumb,
   BreadcrumbEllipsis,
@@ -43,9 +43,7 @@ export default function CurrentPath() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink render={<a href="/" />}>
-              Components
-            </BreadcrumbLink>
+            <BreadcrumbLink render={<a href="/" />}>Components</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>

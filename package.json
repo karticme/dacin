@@ -14,7 +14,7 @@
     "lint": "eslint",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
-    "format": "prettier . --write"
+    "format": "bun scripts.js && prettier . --write"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

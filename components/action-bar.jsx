@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { Hugeicons } from "@/lib/utils";
 import {
   ArrowLeft01Icon,
@@ -10,7 +10,7 @@ import {
   FilterMailSquareIcon,
   LeftToRightListDashIcon,
 } from "@hugeicons/core-free-icons";
-import { TabsList, TabsTab } from "./ui/tabs";
+import { TabsList, TabsTab } from "@/components/ui/tabs";
 import {
   Select,
   SelectGroup,
@@ -19,13 +19,13 @@ import {
   SelectPopup,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
+} from "@/components/ui/select";
 import {
   Tooltip,
   TooltipPopup,
   TooltipProvider,
   TooltipTrigger,
-} from "./ui/tooltip";
+} from "@/components/ui/tooltip";
 
 const SORT_OPTIONS = [
   { value: "name", label: "Name" },
