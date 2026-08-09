@@ -10,7 +10,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { toastManager } from "@/components/ui/toast";
-import { Hugeicons } from "@/lib/utils";
+import { Hugeicons } from "@/components/utils/hugeicons";
 import { WifiOff01Icon } from "@hugeicons/core-free-icons";
 import { redirect, useRouter } from "next/navigation";
 import React, { useEffect } from "react";

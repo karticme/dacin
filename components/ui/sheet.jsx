@@ -2,10 +2,11 @@
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { cn, Hugeicons } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { Hugeicons } from "@/components/utils/hugeicons";
 
 export const Sheet = SheetPrimitive.Root;
 

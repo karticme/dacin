@@ -3,12 +3,13 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 import { useRender } from "@base-ui/react/use-render";
 import { cva } from "class-variance-authority";
-import { cn, Hugeicons } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
   ArrowDown01Icon,
   ArrowUp01Icon,
   UnfoldMoreIcon,
 } from "@hugeicons/core-free-icons";
+import { Hugeicons } from "@/components/utils/hugeicons";
 
 export const Select = SelectPrimitive.Root;
 

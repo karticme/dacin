@@ -42,7 +42,7 @@ export default function Layout({ children }) {
   return (
     <SidebarProvider>
       <HubSidebar />
-      <Tabs value={layout} onValueChange={setLayout}>
+      <Tabs className="flex-1" value={layout} onValueChange={setLayout}>
         <SidebarInset>
           <ActionBar />
           <main className="flex-1">{children}</main>

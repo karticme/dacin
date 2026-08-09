@@ -21,7 +21,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { cn, Hugeicons } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -43,6 +43,7 @@ import { Tooltip, TooltipPopup, TooltipTrigger } from "@/components/ui/tooltip";
 import AddChannelModal from "@/components/models/add-channel";
 import ShortcutsModal from "@/components/models/shortcuts";
 import { isMac } from "@/lib/utils";
+import { Hugeicons } from "@/components/utils/hugeicons";
 
 export default function HubSidebar({ ...props }) {
   const [loading, setLoading] = useState(true);

@@ -1,7 +1,8 @@
 "use client";
 import { ContextMenu as ContextMenuPrimitive } from "@base-ui/react/context-menu";
-import { ChevronRightIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Hugeicons } from "../utils/hugeicons";
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
 export const ContextMenu = ContextMenuPrimitive.Root;
 
@@ -261,7 +262,10 @@ export function ContextMenuSubTrigger({
       {...props}
     >
       {children}
-      <ChevronRightIcon className="ms-auto -me-0.5 opacity-80" />
+      <Hugeicons
+        icon={ArrowRight01Icon}
+        className="ms-auto -me-0.5 opacity-80"
+      />
     </ContextMenuPrimitive.SubmenuTrigger>
   );
 }

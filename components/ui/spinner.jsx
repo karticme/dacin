@@ -1,5 +1,6 @@
-import { cn, Hugeicons } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Loading03Icon } from "@hugeicons/core-free-icons";
+import { Hugeicons } from "@/components/utils/hugeicons";
 
 export function Spinner({ className, ...props }) {
   return (

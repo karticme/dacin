@@ -25,7 +25,8 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
-import { Hugeicons } from "@/lib/utils";
+import { Hugeicons } from "@/components/utils/hugeicons";
+import { OpenLink } from "@/components/utils/open-link";
 import { countryCodes } from "@/lib/country-codes";
 
 import { OTPField, OTPFieldInput } from "@/components/ui/otp-field";
@@ -459,32 +460,12 @@ export default function Page() {
 
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             For more check out
-            <button
-              type="button"
-              onClick={() =>
-                import("@/lib/telegram").then((module) =>
-                  module.openUrl("https://github.com/karticme/dacin"),
-                )
-              }
-              className="cursor-pointer text-info transition-all hover:underline underline-offset-4"
-            >
-              dacin
-            </button>
+            <OpenLink url="https://github.com/karticme/dacin">dacin</OpenLink>
             on GitHub.
           </div>
           <div className="-mt-4 flex items-center gap-1 text-xs text-muted-foreground">
             Made with ❤️ by
-            <button
-              type="button"
-              onClick={() =>
-                import("@/lib/telegram").then((module) =>
-                  module.openUrl("https://x.com/karticme"),
-                )
-              }
-              className="cursor-pointer text-info transition-all hover:underline underline-offset-4"
-            >
-              @karticme
-            </button>
+            <OpenLink url="https://x.com/karticme">@karticme</OpenLink>
           </div>
         </div>
       </div>

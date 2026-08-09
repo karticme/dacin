@@ -1,7 +1,8 @@
 "use client";
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
-import { cn, Hugeicons } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { Hugeicons } from "@/components/utils/hugeicons";
 
 export const MenuCreateHandle = MenuPrimitive.createHandle;
 

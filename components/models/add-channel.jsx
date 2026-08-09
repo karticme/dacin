@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Hugeicons } from "@/lib/utils";
+import { Hugeicons } from "@/components/utils/hugeicons";
 import { SidebarGroupAction } from "@/components/ui/sidebar";
 import { Add01Icon } from "@hugeicons/core-free-icons";
 import { Input } from "@/components/ui/input";

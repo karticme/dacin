@@ -6,7 +6,7 @@ import {
   Search01Icon,
   Upload01Icon,
 } from "@hugeicons/core-free-icons";
-import { cn, Hugeicons } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipTrigger,
@@ -19,6 +19,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { Hugeicons } from "@/components/utils/hugeicons";
 
 export default function SearchUploadTray({ loading }) {
   const [searchOn, setSearchOn] = useState(false);

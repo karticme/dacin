@@ -1,6 +1,6 @@
 "use client";
 import { Toast } from "@base-ui/react/toast";
-import { cn, Hugeicons } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import {
   AlertCircleIcon,
@@ -9,6 +9,7 @@ import {
   Alert02Icon,
 } from "@hugeicons/core-free-icons";
 import { Spinner } from "@/components/ui/spinner";
+import { Hugeicons } from "@/components/utils/hugeicons";
 
 const TOAST_ICONS = {
   error: <Hugeicons icon={AlertCircleIcon} className="text-destructive" />,

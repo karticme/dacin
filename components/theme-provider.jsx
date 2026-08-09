@@ -10,12 +10,13 @@ import {
   MenuSubPopup,
   MenuSubTrigger,
 } from "@/components/ui/menu";
-import { cn, Hugeicons } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
   LayerMask01Icon,
   Moon02Icon,
   Sun03Icon,
 } from "@hugeicons/core-free-icons";
+import { Hugeicons } from "@/components/utils/hugeicons";
 
 export function ThemeProvider({ children, ...props }) {
   return <NextThemesProvider {...props}>{children}</NextThemesProvider>;

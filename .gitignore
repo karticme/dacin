@@ -33,3 +33,4 @@ dist-ssr
 /src-tauri/target/
 /src-tauri/gen/
 /Cargo.lock
+/public/files

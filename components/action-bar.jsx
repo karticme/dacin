@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Hugeicons } from "@/lib/utils";
+import { Hugeicons } from "@/components/utils/hugeicons";
 import {
   ArrowLeft01Icon,
   ArrowRight01Icon,
