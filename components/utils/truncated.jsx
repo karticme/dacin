@@ -31,8 +31,8 @@ function fitMiddle(value, head, tail, container, lines) {
 export default function Truncated({ value, className = "", lines = 1 }) {
   const isMultiline = lines > 1;
   const ref = useRef(null);
-  const fullHead = value.slice(0, -8);
-  const tail = value.slice(-8);
+  const fullHead = value.slice(0, -7);
+  const tail = value.slice(-7);
   const [head, setHead] = useState(fullHead);
 
   useLayoutEffect(() => {

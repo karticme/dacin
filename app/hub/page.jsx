@@ -27,7 +27,7 @@ const FILES = [
   },
   {
     id: 4,
-    name: "audioSprite online-video-cutter.mp3",
+    name: "audioSprite a online-video-cutter cut_your_video_now.mp3",
     type: "Audio",
     thumbnail: "/files/music_file.png",
     size: "5.0 MB",

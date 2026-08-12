@@ -8,13 +8,13 @@ import {
   CheckmarkCircle02Icon,
   Alert02Icon,
 } from "@hugeicons/core-free-icons";
-import { Spinner } from "@/components/ui/spinner";
+import { Loader } from "@/components/ui/loader";
 import { Hugeicons } from "@/components/utils/hugeicons";
 
 const TOAST_ICONS = {
   error: <Hugeicons icon={AlertCircleIcon} className="text-destructive" />,
   info: <Hugeicons icon={BookOpen02Icon} className="text-info" />,
-  loading: <Spinner className="text-muted-foreground" />,
+  loading: <Loader className="text-muted-foreground" />,
   success: <Hugeicons icon={CheckmarkCircle02Icon} className="text-success" />,
   warning: <Hugeicons icon={Alert02Icon} className="text-warning" />,
 };
@@ -133,6 +133,14 @@ function Toasts({ position, portalProps }) {
                     <Toast.Title
                       className="font-medium"
                       data-slot="toast-title"
+                      style={
+                        toast.type === "loading" && {
+                          backgroundImage:
+                            "linear-gradient(90deg, var(--ink-3) 35%, var(--ink) 50%, var(--ink-3) 65%)",
+                          backgroundSize: "200% 100%",
+                          animation: "shimmer-text 1.4s linear` infinite",
+                        }
+                      }
                     />
                     <Toast.Description
                       className="text-muted-foreground"

@@ -18,8 +18,8 @@ export default function RootLayout({ children }) {
           enableSystem
           disableTransitionOnChange
         >
-          <ToastProvider position="bottom-center">{children}</ToastProvider>
           <UtilityProvider />
+          <ToastProvider position="bottom-center">{children}</ToastProvider>
         </ThemeProvider>
       </body>
     </html>

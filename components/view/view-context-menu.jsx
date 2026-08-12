@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   ContextMenu,
   ContextMenuItem,
@@ -13,16 +13,19 @@ import {
   Download01Icon,
   Edit03Icon,
 } from "@hugeicons/core-free-icons";
+import RenameModal from "../models/rename-item";
 
 export default function ViewContextMenu({ children, onOpenChange }) {
+  const [renameOpen, setRenameOpen] = useState(false);
   return (
+    <>
     <ContextMenu onOpenChange={onOpenChange}>
       <ContextMenuTrigger render={children} />
       <ContextMenuPopup align="start">
         <ContextMenuItem>
           <Hugeicons icon={ArrowUpRight03Icon} /> Open
         </ContextMenuItem>
-        <ContextMenuItem>
+        <ContextMenuItem onClick={() => setRenameOpen(true)}>
           <Hugeicons icon={Edit03Icon} /> Rename
         </ContextMenuItem>
         <ContextMenuItem>
@@ -34,5 +37,7 @@ export default function ViewContextMenu({ children, onOpenChange }) {
         </ContextMenuItem>
       </ContextMenuPopup>
     </ContextMenu>
+    <RenameModal type="File" open={renameOpen} onOpenChange={setRenameOpen} />
+    </>
   );
 }

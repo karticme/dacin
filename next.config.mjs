@@ -4,13 +4,17 @@ const internalHost = process.env.TAURI_DEV_HOST || "localhost";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@calcom/cal-sans-ui"],
+  reactCompiler: true,
+  cacheComponents: true,
+  partialPrefetching: true,
   output: "export",
   images: {
     unoptimized: true,
   },
   assetPrefix: isProd ? undefined : `http://${internalHost}:4000`,
-  devIndicators: false,
+  experimental: {
+    turbopackRustReactCompiler: true,
+  },
 };
 
 export default nextConfig;

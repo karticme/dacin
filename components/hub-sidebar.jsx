@@ -7,6 +7,8 @@ import {
   Settings01Icon,
   ArrowRight01Icon,
   Logout01Icon,
+  Edit03Icon,
+  Delete01Icon,
 } from "@hugeicons/core-free-icons";
 import {
   Sidebar,
@@ -44,6 +46,14 @@ import AddChannelModal from "@/components/models/add-channel";
 import ShortcutsModal from "@/components/models/shortcuts";
 import { isMac } from "@/lib/utils";
 import { Hugeicons } from "@/components/utils/hugeicons";
+import {
+  ContextMenu,
+  ContextMenuItem,
+  ContextMenuPopup,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import RenameModal from "./models/rename-item";
 
 export default function HubSidebar({ ...props }) {
   const [loading, setLoading] = useState(true);
@@ -105,19 +115,23 @@ export default function HubSidebar({ ...props }) {
           <AddChannelModal />
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <Hugeicons icon={HardDriveIcon} /> Personal Photos
-                  <SidebarMenuBadge>
-                    <Hugeicons icon={LockKeyIcon} />
-                  </SidebarMenuBadge>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <Hugeicons icon={HardDriveIcon} /> Study Material
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              <ContentOfSidebarButton>
+                <SidebarMenuItem>
+                  <SidebarMenuButton className="group-data-pressed/menu-item:bg-sidebar-accent group-data-pressed/menu-item:text-sidebar-accent-foreground">
+                    <Hugeicons icon={HardDriveIcon} /> Personal Photos
+                    <SidebarMenuBadge>
+                      <Hugeicons icon={LockKeyIcon} />
+                    </SidebarMenuBadge>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </ContentOfSidebarButton>
+              <ContentOfSidebarButton>
+                <SidebarMenuItem>
+                  <SidebarMenuButton className="group-data-pressed/menu-item:bg-sidebar-accent group-data-pressed/menu-item:text-sidebar-accent-foreground">
+                    <Hugeicons icon={HardDriveIcon} /> Study Material
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </ContentOfSidebarButton>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -226,5 +240,30 @@ export default function HubSidebar({ ...props }) {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function ContentOfSidebarButton({ children }) {
+  const [renameOpen, setRenameOpen] = useState(false);
+  return (
+    <>
+      <ContextMenu>
+        <ContextMenuTrigger render={children} />
+        <ContextMenuPopup align="start">
+          <ContextMenuItem onClick={() => setRenameOpen(true)}>
+            <Hugeicons icon={Edit03Icon} /> Rename
+          </ContextMenuItem>
+          <ContextMenuSeparator />
+          <ContextMenuItem variant="destructive">
+            <Hugeicons icon={Delete01Icon} /> Delete
+          </ContextMenuItem>
+        </ContextMenuPopup>
+      </ContextMenu>
+      <RenameModal
+        open={renameOpen}
+        onOpenChange={setRenameOpen}
+        type="Channel"
+      />
+    </>
   );
 }

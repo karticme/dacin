@@ -30,7 +30,7 @@ import { OpenLink } from "@/components/utils/open-link";
 import { countryCodes } from "@/lib/country-codes";
 
 import { OTPField, OTPFieldInput } from "@/components/ui/otp-field";
-import { Spinner } from "@/components/ui/spinner";
+import { Loader } from "@/components/ui/loader";
 import { toastManager } from "@/components/ui/toast";
 import {
   checkPassword,
@@ -287,7 +287,7 @@ export default function Page() {
 
           {checkingSession ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Spinner /> Checking your session...
+              <Loader /> Checking your session...
             </div>
           ) : (
             <>
@@ -363,7 +363,7 @@ export default function Page() {
                     </Group>
                   </div>
                   <Button type="submit" disabled={busy}>
-                    {busy && <Spinner />} {busy ? "Sending OTP..." : "Send OTP"}
+                    {busy && <Loader />} {busy ? "Sending OTP..." : "Send OTP"}
                   </Button>
                 </form>
               )}
@@ -408,7 +408,7 @@ export default function Page() {
                     </OTPField>
                   </div>
                   <Button type="submit" disabled={busy}>
-                    {busy && <Spinner />} {busy ? "Verifying..." : "Verify"}
+                    {busy && <Loader />} {busy ? "Verifying..." : "Verify"}
                   </Button>
                 </form>
               )}
@@ -451,7 +451,7 @@ export default function Page() {
                     </InputGroup>
                   </div>
                   <Button type="submit" disabled={busy}>
-                    {busy && <Spinner />} {busy ? "Checking..." : "Continue"}
+                    {busy && <Loader />} {busy ? "Checking..." : "Continue"}
                   </Button>
                 </form>
               )}
