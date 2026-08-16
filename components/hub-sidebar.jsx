@@ -3,7 +3,7 @@
 import {
   HardDriveIcon,
   KeyboardIcon,
-  LockKeyIcon,
+  SquareLockPasswordIcon,
   Settings01Icon,
   ArrowRight01Icon,
   Logout01Icon,
@@ -35,7 +35,13 @@ import {
   MenuShortcut,
 } from "@/components/ui/menu";
 import { ThemeToggle } from "@/components/theme-provider";
-import { signOut } from "@/lib/telegram";
+import {
+  createChannel,
+  deleteChannel,
+  listChannels,
+  renameChannel,
+  signOut,
+} from "@/lib/telegram";
 import { clearProfileCache, getProfile } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
@@ -55,11 +61,24 @@ import {
 } from "@/components/ui/context-menu";
 import RenameModal from "@/components/models/rename-item";
 import DeleteModal from "@/components/models/delete-item";
+import { toastManager } from "@/components/ui/toast";
 
-export default function HubSidebar({ ...props }) {
+export default function HubSidebar({
+  activeChannelId: controlledActiveChannelId,
+  onChannelChange,
+  ...props
+}) {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [channels, setChannels] = useState([]);
+  const [localActiveChannelId, setLocalActiveChannelId] = useState(null);
+  const activeChannelId = controlledActiveChannelId ?? localActiveChannelId;
+
+  function selectChannel(channel) {
+    setLocalActiveChannelId(channel.channel_id);
+    onChannelChange?.(channel);
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -68,6 +87,110 @@ export default function HubSidebar({ ...props }) {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    listChannels()
+      .then((items) => {
+        setChannels(items);
+        if (items[0]) selectChannel(items[0]);
+      })
+      .catch((error) =>
+        toastManager.add({ type: "error", title: String(error) }),
+      );
+  }, []);
+
+  async function handleCreateChannel(name, encrypted = true) {
+    const promise = createChannel(name, encrypted).then((channel) => {
+      setChannels((items) => [...items, channel]);
+      selectChannel(channel);
+      return channel;
+    });
+
+    toastManager.promise(promise, {
+      loading: {
+        title: "Creating channel",
+        description: `${name} : Setting up your channel on Telegram.`,
+      },
+      success: (channel) => ({
+        title: "Channel created",
+        description: `${channel.name} : ${
+          channel.encrypted
+            ? "Channel is encrypted."
+            : "Channel isn't encrypted."
+        }`,
+      }),
+      error: (error) => ({
+        title: "Failed to create channel",
+        description: String(error?.message || error),
+      }),
+    });
+
+    return promise;
+  }
+
+  function handleSwitchChannel(channel) {
+    selectChannel(channel);
+  }
+
+  async function handleRenameChannel(channel, name) {
+    const promise = renameChannel(channel.channel_id, name).then((renamed) => {
+      setChannels((items) =>
+        items.map((item) =>
+          item.channel_id === renamed.channel_id ? renamed : item,
+        ),
+      );
+      if (activeChannelId === channel.channel_id) {
+        selectChannel(renamed);
+      }
+      return renamed;
+    });
+
+    toastManager.promise(promise, {
+      loading: {
+        title: `Renaming channel`,
+        description: `Updating channel name ${channel.name} -> ${renamed.name}`,
+      },
+      success: (renamed) => ({
+        title: "Channel renamed",
+        description: `${channel.name} -> ${renamed.name}`,
+      }),
+      error: (error) => ({
+        title: "Failed to rename channel",
+        description: String(error?.message || error),
+      }),
+    });
+
+    return promise;
+  }
+
+  async function handleDeleteChannel(channel) {
+    const promise = deleteChannel(channel.channel_id).then(() => {
+      setChannels((items) =>
+        items.filter((item) => item.channel_id !== channel.channel_id),
+      );
+      if (activeChannelId === channel.channel_id) {
+        setLocalActiveChannelId(null);
+        onChannelChange?.(null);
+      }
+    });
+
+    toastManager.promise(promise, {
+      loading: {
+        title: `Deleting ${channel.name} channel`,
+        iconClass: "[&_svg]:text-destructive",
+      },
+      success: () => ({
+        title: `${channel.name} channel deleted.`,
+        iconClass: "[&_svg]:text-destructive",
+      }),
+      error: (error) => ({
+        title: "Failed to delete channel",
+        description: String(error?.message || error),
+      }),
+    });
+
+    return promise;
+  }
 
   async function handleLogout() {
     await signOut();
@@ -113,26 +236,19 @@ export default function HubSidebar({ ...props }) {
       <SidebarContent>
         <SidebarGroup className="pt-0">
           <SidebarGroupLabel>Channels</SidebarGroupLabel>
-          <AddChannelModal />
+          <AddChannelModal onCreate={handleCreateChannel} />
           <SidebarGroupContent>
             <SidebarMenu>
-              <ContentOfSidebarButton>
-                <SidebarMenuItem>
-                  <SidebarMenuButton className="group-data-pressed/menu-item:bg-sidebar-accent group-data-pressed/menu-item:text-sidebar-accent-foreground">
-                    <Hugeicons icon={HardDriveIcon} /> Personal Photos
-                    <SidebarMenuBadge>
-                      <Hugeicons icon={LockKeyIcon} />
-                    </SidebarMenuBadge>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </ContentOfSidebarButton>
-              <ContentOfSidebarButton>
-                <SidebarMenuItem>
-                  <SidebarMenuButton className="group-data-pressed/menu-item:bg-sidebar-accent group-data-pressed/menu-item:text-sidebar-accent-foreground">
-                    <Hugeicons icon={HardDriveIcon} /> Study Material
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </ContentOfSidebarButton>
+              {channels.map((channel) => (
+                <ChannelMenuItem
+                  key={channel.channel_id}
+                  channel={channel}
+                  active={activeChannelId === channel.channel_id}
+                  onSwitch={handleSwitchChannel}
+                  onRename={handleRenameChannel}
+                  onDelete={handleDeleteChannel}
+                />
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -244,13 +360,30 @@ export default function HubSidebar({ ...props }) {
   );
 }
 
-function ContentOfSidebarButton({ children }) {
+function ChannelMenuItem({ channel, active, onSwitch, onRename, onDelete }) {
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   return (
     <>
       <ContextMenu>
-        <ContextMenuTrigger render={children} />
+        <ContextMenuTrigger
+          render={
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                isActive={active}
+                onClick={() => onSwitch(channel)}
+                className="group-data-pressed/menu-item:bg-sidebar-accent group-data-pressed/menu-item:text-sidebar-accent-foreground"
+              >
+                <Hugeicons icon={HardDriveIcon} /> {channel.name}
+                {channel.encrypted && (
+                  <SidebarMenuBadge>
+                    <Hugeicons icon={SquareLockPasswordIcon} />
+                  </SidebarMenuBadge>
+                )}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          }
+        />
         <ContextMenuPopup align="start">
           <ContextMenuItem onClick={() => setRenameOpen(true)}>
             <Hugeicons icon={Edit03Icon} /> Rename
@@ -268,11 +401,16 @@ function ContentOfSidebarButton({ children }) {
         open={renameOpen}
         onOpenChange={setRenameOpen}
         type="Channel"
+        name={channel.name}
+        encrypted={channel.encrypted}
+        onRename={(name) => onRename(channel, name)}
       />
       <DeleteModal
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         type="Channel"
+        name={channel.name}
+        onDelete={() => onDelete(channel)}
       />
     </>
   );

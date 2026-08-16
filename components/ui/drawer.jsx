@@ -9,7 +9,7 @@ import { createContext, useContext } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Hugeicons } from "../utils/hugeicons";
+import { Hugeicons } from "@/components/utils/hugeicons";
 import { ArrowRight01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 
 const DrawerContext = createContext({
@@ -422,7 +422,10 @@ export function DrawerMenuTrigger({ className, children, ...props }) {
       {...props}
     >
       {children}
-      <Hugeicons icon={ArrowRight01Icon} className="ms-auto -me-0.5 opacity-80" />
+      <Hugeicons
+        icon={ArrowRight01Icon}
+        className="ms-auto -me-0.5 opacity-80"
+      />
     </DrawerTrigger>
   );
 }

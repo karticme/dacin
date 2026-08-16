@@ -1,4 +1,5 @@
 mod auth;
+mod channels;
 mod types;
 mod util;
 
@@ -29,6 +30,10 @@ pub fn run() {
             auth::get_profile,
             auth::restore_session,
             auth::sign_out,
+            channels::commands::create_channel,
+            channels::commands::list_channels,
+            channels::commands::rename_channel,
+            channels::commands::delete_channel,
             open_url,
         ])
         .run(tauri::generate_context!())

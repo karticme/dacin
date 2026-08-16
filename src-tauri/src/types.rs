@@ -39,6 +39,13 @@ pub(crate) struct TelegramProfile {
     pub photo_bytes: Option<Vec<u8>>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub(crate) struct ChannelEntry {
+    pub name: String,
+    pub channel_id: i64,
+    pub encrypted: bool,
+}
+
 pub(crate) struct TelegramService {
     pub client: Client,
     pub credentials: StoredCredentials,

@@ -122,7 +122,7 @@ function Toasts({ position, portalProps }) {
                 <div className="flex gap-2">
                   {Icon && (
                     <div
-                      className="[&>svg]:h-lh [&>svg]:w-4 [&_svg]:pointer-events-none [&_svg]:shrink-0"
+                      className={cn("[&>svg]:h-lh [&>svg]:w-4 [&_svg]:pointer-events-none [&_svg]:shrink-0", toast.iconClass)}
                       data-slot="toast-icon"
                     >
                       {Icon}

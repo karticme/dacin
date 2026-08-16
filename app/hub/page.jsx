@@ -15,6 +15,7 @@ export default function Layout() {
   const router = useRouter();
   const [view, setView] = useState("grid");
   const [authorized, setAuthorized] = useState(null);
+  const [activeChannel, setActiveChannel] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -43,7 +44,10 @@ export default function Layout() {
 
   return (
     <SidebarProvider>
-      <HubSidebar />
+      <HubSidebar
+        activeChannelId={activeChannel?.channel_id}
+        onChannelChange={setActiveChannel}
+      />
       <Tabs className="flex-1" value={view} onValueChange={setView}>
         <SidebarInset>
           <ActionBar />
