@@ -4,27 +4,10 @@ export function Loader({ className, direction = "down" }) {
   const delays = Array.from({ length: 9 }, (_, i) => {
     const r = Math.floor(i / 3),
       c = i % 3;
-    let index;
-    const rowDist = Math.abs(r - 1);
-    const colDist = Math.abs(c - 1);
-
-    switch (direction) {
-      case "left":
-        index = 2 - c + rowDist;
-        break;
-      case "up":
-        index = 2 - r + colDist;
-        break;
-      case "down":
-        index = r + colDist;
-        break;
-      case "right":
-      default:
-        index = c + rowDist;
-        break;
-    }
-
-    return index * 90;
+    if (direction === "left") return (2 - c + Math.abs(r - 1)) * 90;
+    else if (direction === "up") return (2 - r + Math.abs(c - 1)) * 90;
+    else if (direction === "down") return (r + Math.abs(c - 1)) * 90;
+    else if (direction === "right") return (c + Math.abs(r - 1)) * 90;
   });
 
   return (

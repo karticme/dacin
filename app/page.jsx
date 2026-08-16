@@ -269,7 +269,7 @@ export default function Page() {
       />
       <img
         alt="Dithered Image of View from Bastei"
-        src="/dithered-image.png"
+        src="https://plugin-apis.vercel.app/dithered-image"
         className="size-full border-r object-cover"
         draggable={false}
       />

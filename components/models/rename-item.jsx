@@ -30,8 +30,8 @@ export default function RenameModal({ type, open, onOpenChange }) {
             <Input placeholder="Personal Image" />
           </div>
           {type === "Channel" && (
-            <Label>
-              <Switch />
+            <Label className="text-muted-foreground">
+              <Switch disabled />
               Encrypt files
             </Label>
           )}

@@ -12,7 +12,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Menu, MenuItem, MenuPopup, MenuTrigger } from "@/components/ui/menu";
-import { Loader } from "./ui/loader";
+import { Loader } from "@/components/ui/loader";
 
 export default function CurrentPath() {
   return (
@@ -52,7 +52,6 @@ export default function CurrentPath() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <Loader />
     </footer>
   );
 }

@@ -50,7 +50,7 @@ export default function Truncated({ value, className = "", lines = 1 }) {
       <p
         ref={ref}
         className={cn(
-          "text-muted-foreground text-[13px] text-center break-all leading-snug overflow-hidden group-data-selected/item:text-info",
+          "break-all leading-snug overflow-hidden group-data-selected/item:text-info",
           className,
         )}
       >
@@ -63,7 +63,7 @@ export default function Truncated({ value, className = "", lines = 1 }) {
   return (
     <p
       className={cn(
-        "text-muted-foreground text-[13px] text-center leading-snug group-data-selected/item:text-info flex justify-center max-w-full overflow-hidden whitespace-nowrap",
+        "leading-snug group-data-selected/item:text-info flex max-w-full overflow-hidden whitespace-nowrap",
         className,
       )}
     >

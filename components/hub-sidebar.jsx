@@ -53,7 +53,8 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import RenameModal from "./models/rename-item";
+import RenameModal from "@/components/models/rename-item";
+import DeleteModal from "@/components/models/delete-item";
 
 export default function HubSidebar({ ...props }) {
   const [loading, setLoading] = useState(true);
@@ -245,6 +246,7 @@ export default function HubSidebar({ ...props }) {
 
 function ContentOfSidebarButton({ children }) {
   const [renameOpen, setRenameOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   return (
     <>
       <ContextMenu>
@@ -254,7 +256,10 @@ function ContentOfSidebarButton({ children }) {
             <Hugeicons icon={Edit03Icon} /> Rename
           </ContextMenuItem>
           <ContextMenuSeparator />
-          <ContextMenuItem variant="destructive">
+          <ContextMenuItem
+            variant="destructive"
+            onClick={() => setDeleteOpen(true)}
+          >
             <Hugeicons icon={Delete01Icon} /> Delete
           </ContextMenuItem>
         </ContextMenuPopup>
@@ -262,6 +267,11 @@ function ContentOfSidebarButton({ children }) {
       <RenameModal
         open={renameOpen}
         onOpenChange={setRenameOpen}
+        type="Channel"
+      />
+      <DeleteModal
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
         type="Channel"
       />
     </>

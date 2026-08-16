@@ -1,13 +1,13 @@
 import {
-  Dialog,
-  DialogClose,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogPanel,
-  DialogPopup,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerClose,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerPanel,
+  DrawerPopup,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { isMac } from "@/lib/utils";
@@ -16,15 +16,15 @@ export const MOD = isMac ? "\u2318" : "Ctrl+";
 
 export default function ShortcutsModal({ open, onOpenChange }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogPopup>
-        <DialogHeader>
-          <DialogTitle>Shortcuts</DialogTitle>
-          <DialogDescription>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerPopup showBar>
+        <DrawerHeader>
+          <DrawerTitle>Shortcuts</DrawerTitle>
+          <DrawerDescription>
             Keyboard shortcuts for navigating Dacin.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogPanel className="flex flex-col gap-3">
+          </DrawerDescription>
+        </DrawerHeader>
+        <DrawerPanel className="flex flex-col gap-3">
           {[
             {
               type: "category",
@@ -119,11 +119,11 @@ export default function ShortcutsModal({ open, onOpenChange }) {
               );
             }
           })}
-        </DialogPanel>
-        <DialogFooter>
-          <DialogClose render={<Button variant="ghost" />}>Close</DialogClose>
-        </DialogFooter>
-      </DialogPopup>
-    </Dialog>
+        </DrawerPanel>
+        <DrawerFooter variant="bare">
+          <DrawerClose render={<Button variant="ghost" />}>Close</DrawerClose>
+        </DrawerFooter>
+      </DrawerPopup>
+    </Drawer>
   );
 }

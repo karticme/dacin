@@ -33,9 +33,7 @@ export default function AddChannelModal() {
       <DialogPopup>
         <DialogHeader>
           <DialogTitle>Create Channel</DialogTitle>
-          <DialogDescription>
-            Name your channel new channel.
-          </DialogDescription>
+          <DialogDescription>Name your channel new channel.</DialogDescription>
         </DialogHeader>
         <DialogPanel className="flex flex-col gap-4">
           <div className="space-y-2">
