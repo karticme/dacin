@@ -18,7 +18,7 @@ export default function ListView({ data }) {
           onOpenChange={(open) => open && setSelectedItem(item)}
         >
           <div
-            className="group/item grid grid-cols-[20px_repeat(11,minmax(0,1fr))] items-center gap-3 px-2 py-1.5 text-[13px] rounded-sm transition-colors ease-in-out data-selected:bg-muted data-pressed:bg-muted nth-[2]:mt-1"
+            className="group/item grid grid-cols-[20px_repeat(11,minmax(0,1fr))] items-center gap-3 px-2 py-1.5 text-[13px] rounded-sm transition-colors ease-in-out data-selected:bg-muted data-pressed:bg-muted nth-[2]:mt-1.5"
             data-selected={selectedItem === item}
             onClick={() => setSelectedItem(item)}
           >

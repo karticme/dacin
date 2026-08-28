@@ -34,7 +34,6 @@ import { Loader } from "@/components/ui/loader";
 import { toastManager } from "@/components/ui/toast";
 import {
   checkPassword,
-  isTauriInvokeTimeout,
   restoreSession,
   setCredentials,
   startAuth,
@@ -132,7 +131,7 @@ export default function Page() {
 
     async function loadSession() {
       try {
-        const response = await restoreSession({ timeoutMs: 3000 });
+        const response = await restoreSession();
         if (!active) return;
 
         if (response?.state === "authorized") {
@@ -143,7 +142,7 @@ export default function Page() {
         if (response?.state === "needs_password") setPhase("password");
         if (active) setCheckingSession(false);
       } catch (error) {
-        if (!active || isTauriInvokeTimeout(error)) return;
+        if (!active) return;
         console.error("[session] restore_session failed:", error);
         notify("error", errorMessage(error));
         if (active) setCheckingSession(false);

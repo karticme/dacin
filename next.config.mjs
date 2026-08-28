@@ -14,6 +14,7 @@ const nextConfig = {
   assetPrefix: isProd ? undefined : `http://${internalHost}:4000`,
   experimental: {
     turbopackRustReactCompiler: true,
+    useOffline: true,
   },
 };
 

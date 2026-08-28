@@ -14,7 +14,6 @@ import ListView from "@/components/view/list-view";
 export default function Layout() {
   const router = useRouter();
   const [view, setView] = useState("grid");
-  const [authorized, setAuthorized] = useState(null);
   const [activeChannel, setActiveChannel] = useState(null);
 
   useEffect(() => {
@@ -28,7 +27,6 @@ export default function Layout() {
           router.replace("/");
           return;
         }
-        setAuthorized(true);
       } catch {
         if (active) router.replace("/");
       }
@@ -39,8 +37,6 @@ export default function Layout() {
       active = false;
     };
   }, [router]);
-
-  if (authorized !== true) return null;
 
   return (
     <SidebarProvider>

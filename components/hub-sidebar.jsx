@@ -38,6 +38,7 @@ import { ThemeToggle } from "@/components/theme-provider";
 import {
   createChannel,
   deleteChannel,
+  getCachedChannels,
   listChannels,
   renameChannel,
   signOut,
@@ -89,10 +90,30 @@ export default function HubSidebar({
   }, []);
 
   useEffect(() => {
+    // Instant load from local disk cache
+    getCachedChannels()
+      .then((cached) => {
+        if (cached && cached.length > 0) {
+          setChannels(cached);
+          if (cached[0] && !controlledActiveChannelId) {
+            selectChannel(cached[0]);
+          }
+        }
+      })
+      .catch(() => {});
+
+    // Background fresh network scan
     listChannels()
       .then((items) => {
         setChannels(items);
-        if (items[0]) selectChannel(items[0]);
+        if (items.length > 0) {
+          if (!controlledActiveChannelId && items[0]) {
+            selectChannel(items[0]);
+          }
+        } else {
+          setLocalActiveChannelId(null);
+          onChannelChange?.(null);
+        }
       })
       .catch((error) =>
         toastManager.add({ type: "error", title: String(error) }),
@@ -109,7 +130,7 @@ export default function HubSidebar({
     toastManager.promise(promise, {
       loading: {
         title: "Creating channel",
-        description: `${name} : Setting up your channel on Telegram.`,
+        description: `${name} : Setting up your channel.`,
       },
       success: (channel) => ({
         title: "Channel created",

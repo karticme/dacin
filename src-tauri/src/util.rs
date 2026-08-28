@@ -16,7 +16,10 @@ pub(crate) fn init_app_data_dir(app: &tauri::App) {
     }
 }
 
-fn app_data_dir() -> Result<PathBuf, String> {
+pub(crate) const BASE64: base64::engine::GeneralPurpose = base64::engine::general_purpose::STANDARD;
+pub(crate) const VERIFICATION_PLAINTEXT: &str = "DACIN_VERIFIED_STORAGE";
+
+pub(crate) fn app_data_dir() -> Result<PathBuf, String> {
     APP_DATA_DIR
         .get()
         .cloned()
@@ -29,6 +32,29 @@ fn credentials_path() -> Result<PathBuf, String> {
 
 pub(crate) fn session_path() -> Result<PathBuf, String> {
     Ok(app_data_dir()?.join("telegram-session.sqlite"))
+}
+
+/// A zero-byte marker file written after a successful login.
+/// Checking its existence is instant (no network) and replaces the
+/// live `GetState` Telegram RPC call on cold start.
+pub(crate) fn session_marker_path() -> Result<PathBuf, String> {
+    Ok(app_data_dir()?.join(".session_active"))
+}
+
+pub(crate) fn write_session_marker() {
+    if let Ok(path) = session_marker_path() {
+        let _ = std::fs::write(path, b"");
+    }
+}
+
+pub(crate) fn clear_session_marker() {
+    if let Ok(path) = session_marker_path() {
+        let _ = std::fs::remove_file(path);
+    }
+}
+
+pub(crate) fn session_marker_exists() -> bool {
+    session_marker_path().map(|p| p.exists()).unwrap_or(false)
 }
 
 pub(crate) async fn load_credentials() -> Result<Option<crate::types::StoredCredentials>, String> {

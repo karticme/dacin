@@ -43,6 +43,7 @@ pub(crate) struct TelegramProfile {
 pub(crate) struct ChannelEntry {
     pub name: String,
     pub channel_id: i64,
+    pub access_hash: i64,
     pub encrypted: bool,
 }
 

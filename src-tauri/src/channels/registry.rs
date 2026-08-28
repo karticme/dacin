@@ -48,9 +48,12 @@ pub(crate) async fn discover_channels(
     let mut channels = Vec::new();
     let mut dialogs = client.iter_dialogs();
     while let Some(dialog) = dialogs.next().await.map_err(|error| error.to_string())? {
+        // Quick title filter — skip anything that's not a dacin channel
         let Some(title) = dialog.peer.name() else { continue; };
         let Some(name) = title.strip_suffix(CHANNEL_SUFFIX) else { continue; };
         let Some(peer) = dialog.peer.to_ref().await else { continue; };
+
+        // Get description via GetFullChannel (one RPC per matched channel)
         let full = client
             .invoke(&tl::functions::channels::GetFullChannel {
                 channel: tl::enums::InputChannel::Channel(tl::types::InputChannel {
@@ -64,6 +67,7 @@ pub(crate) async fn discover_channels(
         channels.push(ChannelEntry {
             name: name.to_string(),
             channel_id: peer.id.bare_id(),
+            access_hash: peer.auth.hash(),
             encrypted,
         });
     }

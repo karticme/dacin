@@ -1,7 +1,8 @@
 mod auth;
 mod channels;
+pub(crate) mod crypto;
 mod types;
-mod util;
+pub(crate) mod util;
 
 use dotenvy::dotenv;
 
@@ -30,6 +31,7 @@ pub fn run() {
             auth::get_profile,
             auth::restore_session,
             auth::sign_out,
+            channels::commands::get_cached_channels,
             channels::commands::create_channel,
             channels::commands::list_channels,
             channels::commands::rename_channel,

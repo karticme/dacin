@@ -49,6 +49,7 @@ async fn check_authorized(client: &grammers_client::Client) -> Result<Option<boo
 }
 
 fn authorized_message() -> AuthResponse {
+    util::write_session_marker();
     util::status(AuthState::Authorized, "Telegram session is active.")
 }
 
@@ -203,6 +204,23 @@ pub(crate) async fn check_password(
 pub(crate) async fn restore_session(
     state: State<'_, TelegramState>,
 ) -> Result<AuthResponse, String> {
+    // Fast path: if the session marker file exists, the user is logged in.
+    // This is a local file check with zero network I/O — instant on cold start.
+    // The Telegram connection will be established lazily in the background.
+    if util::session_marker_exists() {
+        // Still need credentials loaded so subsequent commands work
+        if state.service().await.is_err() {
+            if let Some(credentials) = util::load_credentials().await? {
+                // Start the service (SQLite + MTProto pool) in the background;
+                // don't await the network — just kick it off.
+                let _ = state.set_service(credentials).await;
+            }
+        }
+        return Ok(authorized_message());
+    }
+
+    // Cold path: no marker means either first run or signed out.
+    // Fall back to credentials check.
     let service = match state.service().await {
         Ok(service) => service,
         Err(_) => match util::load_credentials().await? {
@@ -281,5 +299,6 @@ pub(crate) async fn sign_out(state: State<'_, TelegramState>) -> Result<AuthResp
     service.client.sign_out().await.map_err(telegram_error)?;
     *service.login_token.lock().await = None;
     *service.password_token.lock().await = None;
+    util::clear_session_marker();
     Ok(util::status(AuthState::Ready, "Signed out."))
 }

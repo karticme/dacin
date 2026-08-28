@@ -1,8 +1,17 @@
 use grammers_client::media::Uploaded;
 use grammers_client::tl;
-use grammers_session::types::PeerRef;
+use grammers_session::types::{PeerAuth, PeerId, PeerRef};
 
 use super::registry::{channel_description, channel_title};
+
+/// Reconstruct a `PeerRef` from cached channel_id + access_hash.
+/// This avoids a full dialog-list scan entirely.
+pub(crate) fn peer_from_cache(channel_id: i64, access_hash: i64) -> Result<PeerRef, String> {
+    let id = PeerId::channel(channel_id)
+        .ok_or_else(|| format!("Invalid channel id: {channel_id}"))?;
+    let auth = PeerAuth::from_hash(access_hash);
+    Ok(PeerRef { id, auth })
+}
 
 pub(crate) async fn find_peer_by_id(
     client: &grammers_client::Client,
@@ -71,6 +80,7 @@ async fn set_profile_image(client: &grammers_client::Client, peer: &PeerRef) -> 
 
 pub(crate) async fn create_private_channel(
     client: &grammers_client::Client,
+    phone: &str,
     name: &str,
     encrypted: bool,
 ) -> Result<PeerRef, String> {
@@ -119,22 +129,53 @@ pub(crate) async fn create_private_channel(
         None => find_peer_by_title(client, &title).await?,
     };
 
-    if let Err(error) = set_profile_image(client, &peer).await {
-        eprintln!("[channels] channel image was not set: {error}");
-    }
     let input = tl::enums::InputPeer::Channel(tl::types::InputPeerChannel {
         channel_id: peer.id.bare_id(),
         access_hash: peer.auth.hash(),
     });
-    if let Err(error) = client
-        .invoke(&tl::functions::messages::ToggleNoForwards {
-            peer: input,
-            enabled: true,
-        })
-        .await
-    {
+
+    // Prepare crypto messages upfront (CPU-only, no I/O)
+    let crypto_msgs: Option<(String, String)> = if encrypted {
+        let salt = crate::crypto::generate_salt()?;
+        let metadata_key = crate::crypto::derive_key(phone, &salt)?;
+        let encoded = crate::crypto::encrypt_b64(
+            &metadata_key,
+            crate::util::VERIFICATION_PLAINTEXT.as_bytes(),
+        )?;
+        let cfg_msg = serde_json::json!({"t": "cfg", "s": salt}).to_string();
+        let vfy_msg = serde_json::json!({"t": "vfy", "d": encoded}).to_string();
+        Some((cfg_msg, vfy_msg))
+    } else {
+        None
+    };
+
+    // Run image upload and forwarding toggle concurrently
+    let img_fut = set_profile_image(client, &peer);
+    let fwd_req = tl::functions::messages::ToggleNoForwards {
+        peer: input,
+        enabled: true,
+    };
+    let fwd_fut = client.invoke(&fwd_req);
+    let (img_res, fwd_res) = tokio::join!(img_fut, fwd_fut);
+    if let Err(error) = img_res {
+        eprintln!("[channels] channel image was not set: {error}");
+    }
+    if let Err(error) = fwd_res {
         eprintln!("[channels] could not disable forwarding: {error}");
     }
+
+    // Send crypto messages sequentially (order matters: cfg before vfy)
+    if let Some((cfg_msg, vfy_msg)) = crypto_msgs {
+        client
+            .send_message(peer.clone(), cfg_msg)
+            .await
+            .map_err(|error| format!("Failed to send config message: {error}"))?;
+        client
+            .send_message(peer.clone(), vfy_msg)
+            .await
+            .map_err(|error| format!("Failed to send verification message: {error}"))?;
+    }
+
     Ok(peer)
 }
 
@@ -144,28 +185,26 @@ pub(crate) async fn rename_telegram_channel(
     name: &str,
     encrypted: bool,
 ) -> Result<(), String> {
-    client
-        .invoke(&tl::functions::channels::EditTitle {
-            channel: tl::enums::InputChannel::Channel(tl::types::InputChannel {
-                channel_id: peer.id.bare_id(),
-                access_hash: peer.auth.hash(),
-            }),
-            title: channel_title(name),
-        })
-        .await
-        .map_err(|error| format!("Could not rename channel: {error}"))?;
-
-    client
-        .invoke(&tl::functions::messages::EditChatAbout {
-            peer: tl::enums::InputPeer::Channel(tl::types::InputPeerChannel {
-                channel_id: peer.id.bare_id(),
-                access_hash: peer.auth.hash(),
-            }),
-            about: channel_description(name, encrypted),
-        })
-        .await
-        .map_err(|error| format!("Could not update channel description: {error}"))?;
-
+    // Run title rename and description update concurrently
+    let title_req = tl::functions::channels::EditTitle {
+        channel: tl::enums::InputChannel::Channel(tl::types::InputChannel {
+            channel_id: peer.id.bare_id(),
+            access_hash: peer.auth.hash(),
+        }),
+        title: channel_title(name),
+    };
+    let about_req = tl::functions::messages::EditChatAbout {
+        peer: tl::enums::InputPeer::Channel(tl::types::InputPeerChannel {
+            channel_id: peer.id.bare_id(),
+            access_hash: peer.auth.hash(),
+        }),
+        about: channel_description(name, encrypted),
+    };
+    let title_fut = client.invoke(&title_req);
+    let about_fut = client.invoke(&about_req);
+    let (title_res, about_res) = tokio::join!(title_fut, about_fut);
+    title_res.map_err(|error| format!("Could not rename channel: {error}"))?;
+    about_res.map_err(|error| format!("Could not update channel description: {error}"))?;
     Ok(())
 }
 
