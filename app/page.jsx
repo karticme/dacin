@@ -5,7 +5,8 @@ import {
   ViewIcon,
   ViewOffIcon,
   UnfoldMoreIcon,
-} from "@hugeicons/core-free-icons";
+  Hugeicons,
+} from "@/components/utils/hugeicons";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
-import { Hugeicons } from "@/components/utils/hugeicons";
+
 import { OpenLink } from "@/components/utils/open-link";
 import { countryCodes } from "@/lib/country-codes";
 

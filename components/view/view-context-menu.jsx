@@ -1,3 +1,10 @@
+import {
+  ArrowUpRight03Icon,
+  Delete01Icon,
+  Download01Icon,
+  Edit03Icon,
+  Hugeicons,
+} from "@/components/utils/hugeicons";
 import React, { useState } from "react";
 import {
   ContextMenu,
@@ -6,13 +13,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Hugeicons } from "@/components/utils/hugeicons";
-import {
-  ArrowUpRight03Icon,
-  Delete01Icon,
-  Download01Icon,
-  Edit03Icon,
-} from "@hugeicons/core-free-icons";
+
 import RenameModal from "@/components/models/rename-item";
 import DeleteModal from "@/components/models/delete-item";
 

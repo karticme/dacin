@@ -1,12 +1,12 @@
 "use client";
-import { mergeProps } from "@base-ui/react/merge-props";
-import { useRender } from "@base-ui/react/use-render";
-import { cn } from "@/lib/utils";
 import {
   ArrowRight01Icon,
   MoreHorizontalIcon,
-} from "@hugeicons/core-free-icons";
-import { Hugeicons } from "@/components/utils/hugeicons";
+  Hugeicons,
+} from "@/components/utils/hugeicons";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
+import { cn } from "@/lib/utils";
 
 export function Breadcrumb({ ...props }) {
   return <nav aria-label="breadcrumb" data-slot="breadcrumb" {...props} />;

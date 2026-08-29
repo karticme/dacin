@@ -10,7 +10,7 @@ const emptyMediaVariants = cva(
     variants: {
       variant: {
         default: "bg-transparent",
-        icon: "relative flex size-9 shrink-0 items-center justify-center rounded-md border bg-card not-dark:bg-clip-padding text-foreground shadow-sm/5 before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-md)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] dark:before:shadow-[0_-1px_--theme(--color-white/6%)] [&_svg:not([class*='size-'])]:size-4.5",
+        icon: "relative flex size-10 shrink-0 items-center justify-center rounded-md border bg-card not-dark:bg-clip-padding text-foreground shadow-sm/5 before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-md)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] dark:before:shadow-[0_-1px_--theme(--color-white/6%)] [&_svg:not([class*='size-'])]:size-5.5",
       },
     },
   },
@@ -56,14 +56,14 @@ export function EmptyMedia({ className, variant = "default", ...props }) {
             aria-hidden="true"
             className={cn(
               emptyMediaVariants({ className, variant }),
-              "pointer-events-none absolute bottom-px origin-bottom-left -translate-x-0.5 -rotate-10 scale-84 shadow-none",
+              "pointer-events-none absolute bottom-px origin-bottom-left -translate-x-1 -rotate-10 scale-84 shadow-none",
             )}
           />
           <div
             aria-hidden="true"
             className={cn(
               emptyMediaVariants({ className, variant }),
-              "pointer-events-none absolute bottom-px origin-bottom-right translate-x-0.5 rotate-10 scale-84 shadow-none",
+              "pointer-events-none absolute bottom-px origin-bottom-right translate-x-1 rotate-10 scale-84 shadow-none",
             )}
           />
         </>

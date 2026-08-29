@@ -10,10 +10,26 @@ import { Tabs, TabsPanel } from "@/components/ui/tabs";
 import CurrentPath from "@/components/current-path";
 import GridView from "@/components/view/grid-view";
 import ListView from "@/components/view/list-view";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
+  Upload01Icon,
+  FolderAddIcon,
+  ZzzIcon,
+  Hugeicons,
+} from "@/components/utils/hugeicons";
+import { Button } from "@/components/ui/button";
 
 export default function Layout() {
   const router = useRouter();
   const [view, setView] = useState("grid");
+  const empty = !FILES || FILES.length === 0;
   const [activeChannel, setActiveChannel] = useState(null);
 
   useEffect(() => {
@@ -46,15 +62,41 @@ export default function Layout() {
       />
       <Tabs className="flex-1" value={view} onValueChange={setView}>
         <SidebarInset>
-          <ActionBar />
-          <main className="h-[calc(100vh-80px)] overflow-auto">
-            <TabsPanel value="grid" className="overflow-y-auto">
-              <GridView data={FILES} />
-            </TabsPanel>
-            <TabsPanel value="list">
-              <ListView data={FILES} />
-            </TabsPanel>
-          </main>
+          <ActionBar disabled={empty} />
+          {empty ? (
+            <Empty className="h-[calc(100vh-80px)]">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Hugeicons icon={ZzzIcon} />
+                </EmptyMedia>
+                <EmptyTitle>Channel is Empty</EmptyTitle>
+                <EmptyDescription>
+                  Channel has no file or folder.
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <div className="flex gap-3">
+                  <Button>
+                    <Hugeicons icon={Upload01Icon} />
+                    Upload File
+                  </Button>
+                  <Button variant="outline">
+                    <Hugeicons icon={FolderAddIcon} />
+                    Add Folder
+                  </Button>
+                </div>
+              </EmptyContent>
+            </Empty>
+          ) : (
+            <main className="h-[calc(100vh-80px)] overflow-auto">
+              <TabsPanel value="grid" className="overflow-y-auto">
+                <GridView data={FILES} />
+              </TabsPanel>
+              <TabsPanel value="list">
+                <ListView data={FILES} />
+              </TabsPanel>
+            </main>
+          )}
           <CurrentPath />
         </SidebarInset>
       </Tabs>

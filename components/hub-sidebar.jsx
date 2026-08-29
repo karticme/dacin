@@ -9,7 +9,8 @@ import {
   Logout01Icon,
   Edit03Icon,
   Delete01Icon,
-} from "@hugeicons/core-free-icons";
+  Hugeicons,
+} from "@/components/utils/hugeicons";
 import {
   Sidebar,
   SidebarContent,
@@ -52,7 +53,7 @@ import { Tooltip, TooltipPopup, TooltipTrigger } from "@/components/ui/tooltip";
 import AddChannelModal from "@/components/models/add-channel";
 import ShortcutsModal from "@/components/models/shortcuts";
 import { isMac } from "@/lib/utils";
-import { Hugeicons } from "@/components/utils/hugeicons";
+
 import {
   ContextMenu,
   ContextMenuItem,

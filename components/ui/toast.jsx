@@ -1,15 +1,16 @@
 "use client";
-import { Toast } from "@base-ui/react/toast";
-import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
 import {
   AlertCircleIcon,
   BookOpen02Icon,
   CheckmarkCircle02Icon,
   Alert02Icon,
-} from "@hugeicons/core-free-icons";
+  Hugeicons,
+} from "@/components/utils/hugeicons";
+import { Toast } from "@base-ui/react/toast";
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
+
 import { Loader } from "@/components/ui/loader";
-import { Hugeicons } from "@/components/utils/hugeicons";
 
 const TOAST_ICONS = {
   error: <Hugeicons icon={AlertCircleIcon} className="text-destructive" />,
@@ -122,7 +123,10 @@ function Toasts({ position, portalProps }) {
                 <div className="flex gap-2">
                   {Icon && (
                     <div
-                      className={cn("[&>svg]:h-lh [&>svg]:w-4 [&_svg]:pointer-events-none [&_svg]:shrink-0", toast.iconClass)}
+                      className={cn(
+                        "[&>svg]:h-lh [&>svg]:w-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+                        toast.iconClass,
+                      )}
                       data-slot="toast-icon"
                     >
                       {Icon}

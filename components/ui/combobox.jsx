@@ -1,12 +1,15 @@
 "use client";
 
+import {
+  Cancel01Icon,
+  UnfoldMoreIcon,
+  Hugeicons,
+} from "@/components/utils/hugeicons";
 import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Cancel01Icon, UnfoldMoreIcon } from "@hugeicons/core-free-icons";
-import { Hugeicons } from "@/components/utils/hugeicons";
 
 export const ComboboxContext = React.createContext({
   chipsRef: null,

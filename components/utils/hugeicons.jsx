@@ -1,3 +1,4 @@
+export * from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 export function Hugeicons(props) {

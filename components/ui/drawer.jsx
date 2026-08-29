@@ -1,4 +1,9 @@
 "use client";
+import {
+  ArrowRight01Icon,
+  Cancel01Icon,
+  Hugeicons,
+} from "@/components/utils/hugeicons";
 import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox";
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
 import { mergeProps } from "@base-ui/react/merge-props";
@@ -9,8 +14,6 @@ import { createContext, useContext } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Hugeicons } from "@/components/utils/hugeicons";
-import { ArrowRight01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 
 const DrawerContext = createContext({
   position: "bottom",

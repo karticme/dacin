@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  LayerMask01Icon,
+  Moon02Icon,
+  Sun03Icon,
+  Hugeicons,
+} from "@/components/utils/hugeicons";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { useTheme } from "next-themes";
 import {
@@ -11,12 +17,6 @@ import {
   MenuSubTrigger,
 } from "@/components/ui/menu";
 import { cn } from "@/lib/utils";
-import {
-  LayerMask01Icon,
-  Moon02Icon,
-  Sun03Icon,
-} from "@hugeicons/core-free-icons";
-import { Hugeicons } from "@/components/utils/hugeicons";
 
 export function ThemeProvider({ children, ...props }) {
   return <NextThemesProvider {...props}>{children}</NextThemesProvider>;

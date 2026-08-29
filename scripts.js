@@ -5,8 +5,8 @@
  *
  * Does two things across all .js/.jsx/.ts/.tsx files in /app, /components, /hooks, /lib:
  *
- * 1. Merges multiple `import { ... } from "@hugeicons/core-free-icons"` statements
- *    into a single combined import.
+ * 1. Merges icon imports into a single import from
+ *    `@/components/utils/hugeicons` when `Hugeicons` is already imported there.
  *
  * 2. Converts relative imports like `./ui/button`, `./models/shortcuts`, `./filename`
  *    into `@/`-aliased absolute imports based on the file's location in the project.
@@ -27,7 +27,7 @@ const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname);
 const TARGET_DIRS = ["app", "components", "hooks", "lib"];
 const FILE_EXTS = [".js", ".jsx", ".ts", ".tsx"];
-const HUGEICONS_PKG = "@hugeicons/core-free-icons";
+const HUGEICONS_UTIL = "@/components/utils/hugeicons";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -48,20 +48,24 @@ function collectFiles(dir) {
 }
 
 /**
- * Merge all `import { ... } from "@hugeicons/core-free-icons"` blocks into one.
- * Handles multi-line imports with any whitespace/indentation.
+ * Merge core icon imports into the local utility import when Hugeicons is
+ * already imported there. The utility re-exports the core icons.
  */
 function mergeHugeiconsImports(source) {
-  // Match any import {...} from "@hugeicons/core-free-icons" (single or multi-line)
-  const importRegex =
+  const coreImportRegex =
     /import\s*\{([^}]*)\}\s*from\s*["']@hugeicons\/core-free-icons["']\s*;?/g;
+  const utilityImportRegex =
+    /import\s*\{([^}]*)\}\s*from\s*["']@\/components\/utils\/hugeicons["']\s*;?/g;
+
+  const coreMatches = [...source.matchAll(coreImportRegex)];
+  const utilityMatches = [...source.matchAll(utilityImportRegex)];
+
+  if (coreMatches.length === 0 || utilityMatches.length === 0) {
+    return source;
+  }
 
   const allNames = new Set();
-  const matches = [...source.matchAll(importRegex)];
-
-  if (matches.length <= 1) return source; // nothing to merge
-
-  for (const match of matches) {
+  for (const match of [...coreMatches, ...utilityMatches]) {
     const names = match[1]
       .split(",")
       .map((n) => n.trim())
@@ -69,11 +73,11 @@ function mergeHugeiconsImports(source) {
     for (const name of names) allNames.add(name);
   }
 
-  // Build the merged import line
-  const merged = `import {\n  ${[...allNames].join(", ")},\n} from "${HUGEICONS_PKG}";`;
+  const merged = `import {\n  ${[...allNames].join(", ")},\n} from "${HUGEICONS_UTIL}";`;
 
-  // Remove all original hugeicons imports from the source
-  let result = source.replace(importRegex, "");
+  // Remove all original icon imports from the source.
+  let result = source.replace(coreImportRegex, "");
+  result = result.replace(utilityImportRegex, "");
 
   // Collapse runs of blank lines that the removals may leave behind
   result = result.replace(/\n{3,}/g, "\n\n");

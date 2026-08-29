@@ -1,4 +1,5 @@
 "use client";
+import { SidebarLeftIcon, Hugeicons } from "@/components/utils/hugeicons";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cva } from "class-variance-authority";
@@ -18,8 +19,6 @@ import {
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "@/components/ui/tooltip";
-import { SidebarLeftIcon } from "@hugeicons/core-free-icons";
-import { Hugeicons } from "@/components/utils/hugeicons";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;

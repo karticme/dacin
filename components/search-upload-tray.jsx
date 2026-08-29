@@ -1,11 +1,13 @@
-import { Button } from "@/components/ui/button";
 import {
   Cancel01Icon,
   Eraser01Icon,
   FolderAddIcon,
   Search01Icon,
   Upload01Icon,
-} from "@hugeicons/core-free-icons";
+  Hugeicons,
+} from "@/components/utils/hugeicons";
+import { Button } from "@/components/ui/button";
+
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -19,7 +21,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { Hugeicons } from "@/components/utils/hugeicons";
+import AddFolderModal from "./models/add-folder";
 
 export default function SearchUploadTray({ loading }) {
   const [searchOn, setSearchOn] = useState(false);
@@ -60,18 +62,20 @@ export default function SearchUploadTray({ loading }) {
             <TooltipPopup>Upload Files</TooltipPopup>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  className="flex-1"
-                  size="xl"
-                  variant="outline"
-                  disabled={loading}
-                />
-              }
-            >
-              <Hugeicons icon={FolderAddIcon} />
-            </TooltipTrigger>
+            <AddFolderModal>
+              <TooltipTrigger
+                render={
+                  <Button
+                    className="flex-1"
+                    size="xl"
+                    variant="outline"
+                    disabled={loading}
+                  />
+                }
+              >
+                <Hugeicons icon={FolderAddIcon} />
+              </TooltipTrigger>
+            </AddFolderModal>
             <TooltipPopup>Create New Folder</TooltipPopup>
           </Tooltip>
         </div>
@@ -96,6 +100,7 @@ export default function SearchUploadTray({ loading }) {
                         setSearchOn(true);
                         searchInput.current?.focus();
                       }}
+                      className="pl-0.5"
                     />
                   }
                 >

@@ -1,15 +1,16 @@
 "use client";
 
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { Hugeicons } from "@/components/utils/hugeicons";
 import {
   ArrowLeft01Icon,
   ArrowRight01Icon,
   DashboardSquare01Icon,
   FilterMailSquareIcon,
   LeftToRightListDashIcon,
-} from "@hugeicons/core-free-icons";
+  Hugeicons,
+} from "@/components/utils/hugeicons";
+import React from "react";
+import { Button } from "@/components/ui/button";
+
 import { TabsList, TabsTab } from "@/components/ui/tabs";
 import {
   Select,
@@ -34,7 +35,7 @@ const SORT_OPTIONS = [
   { value: "created", label: "Created" },
 ];
 
-export default function ActionBar() {
+export default function ActionBar({ disabled }) {
   const [sortOrder, setSortOrder] = React.useState("created");
 
   return (
@@ -45,10 +46,10 @@ export default function ActionBar() {
       <div className="flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger render={<div className="space-x-0.5" />}>
-            <Button size="icon-sm" variant="ghost">
+            <Button size="icon-sm" variant="ghost" disabled={disabled}>
               <Hugeicons icon={ArrowLeft01Icon} />
             </Button>
-            <Button size="icon-sm" variant="ghost">
+            <Button size="icon-sm" variant="ghost" disabled={disabled}>
               <Hugeicons icon={ArrowRight01Icon} />
             </Button>
           </TooltipTrigger>
@@ -69,6 +70,7 @@ export default function ActionBar() {
                   <SelectTrigger
                     size="sm"
                     className="min-w-24 [&>span]:data-[slot=select-icon]:hidden"
+                    disabled={disabled}
                   />
                 }
               >
@@ -103,7 +105,13 @@ export default function ActionBar() {
             ].map((tab) => (
               <Tooltip key={tab.id}>
                 <TooltipTrigger
-                  render={<TabsTab className="size-6!" value={tab.id} />}
+                  render={
+                    <TabsTab
+                      className="size-6!"
+                      value={tab.id}
+                      disabled={disabled}
+                    />
+                  }
                 >
                   <Hugeicons icon={tab.icon} />
                 </TooltipTrigger>

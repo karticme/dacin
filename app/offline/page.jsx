@@ -1,5 +1,6 @@
 "use client";
 
+import { WifiOff01Icon, Hugeicons } from "@/components/utils/hugeicons";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -10,8 +11,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { toastManager } from "@/components/ui/toast";
-import { Hugeicons } from "@/components/utils/hugeicons";
-import { WifiOff01Icon } from "@hugeicons/core-free-icons";
+
 import { redirect, useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 
@@ -53,11 +53,9 @@ export default function Offline() {
   return (
     <Empty className="h-full">
       <EmptyHeader>
-        <div className="scale-150">
-          <EmptyMedia variant="icon">
-            <Hugeicons icon={WifiOff01Icon} className="text-warning" />
-          </EmptyMedia>
-        </div>
+        <EmptyMedia variant="icon">
+          <Hugeicons icon={WifiOff01Icon} className="text-warning" />
+        </EmptyMedia>
         <EmptyTitle>No Internet Connection</EmptyTitle>
         <EmptyDescription>
           You are currently offline. Please check your internet connection and

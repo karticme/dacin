@@ -10,9 +10,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Hugeicons } from "@/components/utils/hugeicons";
+import { Hugeicons, Add01Icon } from "@/components/utils/hugeicons";
 import { SidebarGroupAction } from "@/components/ui/sidebar";
-import { Add01Icon, Svg02FreeIcons } from "@hugeicons/core-free-icons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
