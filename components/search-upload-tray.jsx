@@ -21,7 +21,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import AddFolderModal from "./models/add-folder";
+import AddFolderModal from "@/components/models/add-folder";
 
 export default function SearchUploadTray({ loading }) {
   const [searchOn, setSearchOn] = useState(false);
