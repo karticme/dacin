@@ -35,7 +35,7 @@ export function Loader({ className, direction = "down" }) {
               keyTimes="0; 0.18; 0.18; 0.42; 0.62; 1"
               keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"
               calcMode="spline"
-              dur="650ms"
+              dur="800ms"
               begin={d + "ms"}
               repeatCount="indefinite"
             />

@@ -12,12 +12,21 @@ import { buttonVariants } from "@/components/ui/button";
 
 import { Loader } from "@/components/ui/loader";
 
-const TOAST_ICONS = {
-  error: <Hugeicons icon={AlertCircleIcon} className="text-destructive" />,
-  info: <Hugeicons icon={BookOpen02Icon} className="text-info" />,
-  loading: <Loader className="text-muted-foreground" />,
-  success: <Hugeicons icon={CheckmarkCircle02Icon} className="text-success" />,
-  warning: <Hugeicons icon={Alert02Icon} className="text-warning" />,
+const toastIcons = (type, direction) => {
+  switch (type) {
+    case "error":
+      return <Hugeicons icon={AlertCircleIcon} className="text-destructive" />;
+    case "info":
+      return <Hugeicons icon={BookOpen02Icon} className="text-info" />;
+    case "loading":
+      return <Loader direction={direction} className="text-muted-foreground" />;
+    case "success":
+      return <Hugeicons icon={CheckmarkCircle02Icon} className="text-success" />;
+    case "warning":
+      return <Hugeicons icon={Alert02Icon} className="text-warning" />;
+    default:
+      return null;
+  }
 };
 
 function getSwipeDirection(position) {
@@ -65,7 +74,7 @@ function Toasts({ position, portalProps }) {
         data-slot="toast-viewport"
       >
         {toasts.map((toast) => {
-          const Icon = toast.type ? TOAST_ICONS[toast.type] : null;
+          const Icon = toast.type ? toastIcons(toast.type, toast?.iconDirection) : null;
           const toastData = toast.data;
 
           return (
@@ -142,7 +151,7 @@ function Toasts({ position, portalProps }) {
                           backgroundImage:
                             "linear-gradient(90deg, var(--ink-3) 35%, var(--ink) 50%, var(--ink-3) 65%)",
                           backgroundSize: "200% 100%",
-                          animation: "shimmer-text 1.4s linear` infinite",
+                          animation: "shimmer 1.4s linear` infinite",
                         }
                       }
                     />

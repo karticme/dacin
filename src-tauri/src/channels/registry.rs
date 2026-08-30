@@ -1,95 +1,132 @@
 use crate::types::ChannelEntry;
 use grammers_client::tl;
 
+use super::folder::list_folder_peers;
+
 pub(crate) const CHANNEL_SUFFIX: &str = " @dacin";
-const CHANNEL_NOTE: &str = "🛑 Note: Don't rename channel or change description otherwise channel will be disconnected from dacin.";
+const CHANNEL_NOTE: &str = "Note: Don't move the channel from folder. Also don't rename channel or change description otherwise channel will be disconnected from dacin.";
 
 pub(crate) fn channel_title(name: &str) -> String {
     format!("{name}{CHANNEL_SUFFIX}")
 }
 
-pub(crate) fn channel_description(name: &str, encrypted: bool) -> String {
-    let slug = name.to_lowercase().replace(' ', "_");
-    let handle = if encrypted {
-        format!("@{slug}-enc-dacin")
+pub(crate) fn channel_description(encrypted: bool) -> String {
+    if encrypted {
+        format!("[Encrypted] This channel is automatically created by Dacin app.\n{CHANNEL_NOTE}")
     } else {
-        format!("@{slug}-dacin")
-    };
-    let encryption_note = if encrypted {
-        "\n\nThis channel is encrypted."
-    } else {
-        ""
-    };
-    format!(
-        "{handle} This channel is automatically created by Dacin app.{encryption_note}\n\n{CHANNEL_NOTE}"
-    )
+        format!("This channel is automatically created by Dacin app.\n{CHANNEL_NOTE}")
+    }
 }
 
-fn matching_description(name: &str, description: &str) -> Option<bool> {
-    let slug = name.to_lowercase().replace(' ', "_");
-    let enc_handle = format!("@{slug}-enc-dacin");
-    let norm_handle = format!("@{slug}-dacin");
-    if description.contains(&enc_handle) || (description.contains(&norm_handle) && description.contains("This channel is encrypted.")) {
-        Some(true)
-    } else if description.contains(&norm_handle) {
-        Some(false)
-    } else if description == channel_description(name, true) {
-        Some(true)
-    } else if description == channel_description(name, false) {
-        Some(false)
-    } else {
-        None
-    }
+/// Detect the encrypted flag from a stored description.
+fn encrypted_from_description(description: &str) -> bool {
+    description.starts_with("[Encrypted]")
 }
 
 pub(crate) async fn discover_channels(
     client: &grammers_client::Client,
 ) -> Result<Vec<ChannelEntry>, String> {
-    let mut channels = Vec::new();
-    let mut dialogs = client.iter_dialogs();
-    while let Some(dialog) = dialogs.next().await.map_err(|error| error.to_string())? {
-        // Quick title filter — skip anything that's not a dacin channel
-        let Some(title) = dialog.peer.name() else { continue; };
-        let Some(name) = title.strip_suffix(CHANNEL_SUFFIX) else { continue; };
-        let Some(peer) = dialog.peer.to_ref().await else { continue; };
+    let peers = list_folder_peers(client).await?;
 
-        // Get description via GetFullChannel (one RPC per matched channel)
+    if peers.is_empty() {
+        return Ok(vec![]);
+    }
+
+    let mut channels = Vec::new();
+    let mut stale_ids: Vec<i64> = Vec::new();
+
+    for peer_input in peers {
+        let (channel_id, access_hash) = match &peer_input {
+            tl::enums::InputPeer::Channel(c) => (c.channel_id, c.access_hash),
+            _ => continue,
+        };
+
+        // Read description via GetFullChannel to determine encrypted flag
         let full = client
             .invoke(&tl::functions::channels::GetFullChannel {
                 channel: tl::enums::InputChannel::Channel(tl::types::InputChannel {
-                    channel_id: peer.id.bare_id(),
-                    access_hash: peer.auth.hash(),
+                    channel_id,
+                    access_hash,
                 }),
             })
             .await;
-        let Ok(tl::enums::messages::ChatFull::Full(full)) = full else { continue; };
-        let Some(encrypted) = matching_description(name, &full.full_chat.about()) else { continue; };
+
+        let Ok(tl::enums::messages::ChatFull::Full(full)) = full else {
+            eprintln!("[registry] Channel {channel_id} is inaccessible — removing from folder");
+            stale_ids.push(channel_id);
+            continue;
+        };
+
+        let about = full.full_chat.about();
+        let encrypted = encrypted_from_description(&about);
+
+        // Extract name from the chat title
+        let name = full
+            .chats
+            .into_iter()
+            .find_map(|chat| match chat {
+                tl::enums::Chat::Channel(c) if c.id == channel_id => {
+                    c.title.strip_suffix(CHANNEL_SUFFIX).map(str::to_string)
+                }
+                _ => None,
+            });
+
+        let Some(name) = name else {
+            eprintln!("[registry] Skipping channel {channel_id}: title has no @dacin suffix");
+            continue;
+        };
+
         channels.push(ChannelEntry {
-            name: name.to_string(),
-            channel_id: peer.id.bare_id(),
-            access_hash: peer.auth.hash(),
+            name,
+            channel_id,
+            access_hash,
             encrypted,
         });
     }
+
+    // Purge stale entries from the folder so they don't spam on next call
+    for stale_id in stale_ids {
+        if let Err(e) = super::folder::remove_peer_from_folder(client, stale_id).await {
+            eprintln!("[registry] Failed to remove stale channel {stale_id} from folder: {e}");
+        }
+    }
+
     channels.sort_by(|left, right| left.name.to_lowercase().cmp(&right.name.to_lowercase()));
     Ok(channels)
 }
 
+/// Checks uniqueness against the @dacin folder peers (no full dialog scan).
 pub(crate) async fn ensure_unique_name(
     client: &grammers_client::Client,
     name: &str,
     excluding_id: Option<i64>,
 ) -> Result<(), String> {
     let target_title = channel_title(name);
-    let mut dialogs = client.iter_dialogs();
-    while let Some(dialog) = dialogs.next().await.map_err(|error| error.to_string())? {
-        if let Some(title) = dialog.peer.name() {
-            if title.eq_ignore_ascii_case(&target_title) {
-                if let Some(peer) = dialog.peer.to_ref().await {
-                    if Some(peer.id.bare_id()) != excluding_id {
-                        return Err("A channel with this name already exists".to_string());
-                    }
-                }
+    let peers = list_folder_peers(client).await?;
+
+    for peer_input in peers {
+        let (channel_id, access_hash) = match &peer_input {
+            tl::enums::InputPeer::Channel(c) => (c.channel_id, c.access_hash),
+            _ => continue,
+        };
+        if Some(channel_id) == excluding_id {
+            continue;
+        }
+        // Read title via GetFullChannel
+        let full = client
+            .invoke(&tl::functions::channels::GetFullChannel {
+                channel: tl::enums::InputChannel::Channel(tl::types::InputChannel {
+                    channel_id,
+                    access_hash,
+                }),
+            })
+            .await;
+        if let Ok(tl::enums::messages::ChatFull::Full(full)) = full {
+            let title_matches = full.chats.iter().any(|chat| {
+                matches!(chat, tl::enums::Chat::Channel(c) if c.id == channel_id && c.title.eq_ignore_ascii_case(&target_title))
+            });
+            if title_matches {
+                return Err("A channel with this name already exists".to_string());
             }
         }
     }

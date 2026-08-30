@@ -9,7 +9,9 @@ import {
   Logout01Icon,
   Edit03Icon,
   Delete01Icon,
+  ZzzIcon,
   Hugeicons,
+  MoreVerticalIcon,
 } from "@/components/utils/hugeicons";
 import {
   Sidebar,
@@ -20,14 +22,16 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSkeleton,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
+  Menu,
+  MenuTrigger,
   MenuGroup,
   MenuGroupLabel,
   MenuItem,
@@ -53,17 +57,11 @@ import { Tooltip, TooltipPopup, TooltipTrigger } from "@/components/ui/tooltip";
 import AddChannelModal from "@/components/models/add-channel";
 import ShortcutsModal from "@/components/models/shortcuts";
 import { isMac } from "@/lib/utils";
-
-import {
-  ContextMenu,
-  ContextMenuItem,
-  ContextMenuPopup,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
 import RenameModal from "@/components/models/rename-item";
 import DeleteModal from "@/components/models/delete-item";
 import { toastManager } from "@/components/ui/toast";
+import { Loader } from "@/components/ui/loader";
+import UploadStateSheet from "@/components/models/upload-state-sheet";
 
 export default function HubSidebar({
   activeChannelId: controlledActiveChannelId,
@@ -132,6 +130,7 @@ export default function HubSidebar({
       loading: {
         title: "Creating channel",
         description: `${name} : Setting up your channel.`,
+        iconDirection: "up",
       },
       success: (channel) => ({
         title: "Channel created",
@@ -168,10 +167,11 @@ export default function HubSidebar({
     });
 
     toastManager.promise(promise, {
-      loading: {
+      loading: (renamed) => ({
         title: `Renaming channel`,
-        description: `Updating channel name ${channel.name} -> ${renamed.name}`,
-      },
+        description: `Updating channel name ${channel.name} -> ${name}`,
+        iconDirection: "right",
+      }),
       success: (renamed) => ({
         title: "Channel renamed",
         description: `${channel.name} -> ${renamed.name}`,
@@ -199,6 +199,8 @@ export default function HubSidebar({
     toastManager.promise(promise, {
       loading: {
         title: `Deleting ${channel.name} channel`,
+        description: `Removing ${channel.name} from your channels.`,
+        iconDirection: "down",
         iconClass: "[&_svg]:text-destructive",
       },
       success: () => ({
@@ -261,22 +263,54 @@ export default function HubSidebar({
           <AddChannelModal onCreate={handleCreateChannel} />
           <SidebarGroupContent>
             <SidebarMenu>
-              {channels.map((channel) => (
-                <ChannelMenuItem
-                  key={channel.channel_id}
-                  channel={channel}
-                  active={activeChannelId === channel.channel_id}
-                  onSwitch={handleSwitchChannel}
-                  onRename={handleRenameChannel}
-                  onDelete={handleDeleteChannel}
-                />
-              ))}
+              {loading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <SidebarMenuSkeleton key={i} showIcon={true} />
+                ))
+              ) : channels.length > 0 ? (
+                channels.map((channel) => (
+                  <SidebarMenuItem key={channel.channel_id}>
+                    <SidebarMenuButton
+                      isActive={activeChannelId === channel.channel_id}
+                      onClick={() => handleSwitchChannel(channel)}
+                      className="group-data-pressed/menu-item:bg-sidebar-accent group-data-pressed/menu-item:text-sidebar-accent-foreground"
+                    >
+                      <Hugeicons icon={HardDriveIcon} /> {channel.name}
+                      {channel.encrypted && (
+                        <SidebarMenuBadge className="opacity-60">
+                          <Hugeicons icon={SquareLockPasswordIcon} />
+                        </SidebarMenuBadge>
+                      )}
+                    </SidebarMenuButton>
+                    <ChannelMenuItem
+                      channel={channel}
+                      onRename={handleRenameChannel}
+                      onDelete={handleDeleteChannel}
+                    />
+                  </SidebarMenuItem>
+                ))
+              ) : (
+                <div className="flex flex-col items-center gap-4 py-8 text-xs text-sidebar-foreground">
+                  <Hugeicons icon={ZzzIcon} className="size-5 stroke-[1.5px]" />
+                  No channels found.
+                </div>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          {/* uploading state */}
+          <UploadStateSheet>
+            <SidebarMenuItem className="my-2 [&_button]:px-3 [&_button]:gap-2.5">
+              <SidebarMenuButton>
+                <Loader direction="up" /> Uploading
+              </SidebarMenuButton>
+              <SidebarMenuBadge>2/7</SidebarMenuBadge>
+            </SidebarMenuItem>
+          </UploadStateSheet>
+
           {loading ? (
             <div className="flex items-center gap-2 p-0.5">
               <Skeleton className="size-10 rounded-lg" />
@@ -310,11 +344,11 @@ export default function HubSidebar({
                   </div>
                 </>
               )}
-              <DropdownMenu>
+              <Menu>
                 <Tooltip>
                   <TooltipTrigger
                     render={
-                      <DropdownMenuTrigger
+                      <MenuTrigger
                         render={
                           <SidebarMenuButton
                             className={cn(
@@ -369,7 +403,7 @@ export default function HubSidebar({
                     <Hugeicons icon={Logout01Icon} /> Logout
                   </MenuItem>
                 </MenuPopup>
-              </DropdownMenu>
+              </Menu>
               <ShortcutsModal
                 open={shortcutsOpen}
                 onOpenChange={setShortcutsOpen}
@@ -387,38 +421,24 @@ function ChannelMenuItem({ channel, active, onSwitch, onRename, onDelete }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   return (
     <>
-      <ContextMenu>
-        <ContextMenuTrigger
+      <Menu>
+        <MenuTrigger
           render={
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                isActive={active}
-                onClick={() => onSwitch(channel)}
-                className="group-data-pressed/menu-item:bg-sidebar-accent group-data-pressed/menu-item:text-sidebar-accent-foreground"
-              >
-                <Hugeicons icon={HardDriveIcon} /> {channel.name}
-                {channel.encrypted && (
-                  <SidebarMenuBadge>
-                    <Hugeicons icon={SquareLockPasswordIcon} />
-                  </SidebarMenuBadge>
-                )}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <SidebarMenuAction>
+              <Hugeicons icon={MoreVerticalIcon} />
+            </SidebarMenuAction>
           }
         />
-        <ContextMenuPopup align="start">
-          <ContextMenuItem onClick={() => setRenameOpen(true)}>
+        <MenuPopup align="end">
+          <MenuItem onClick={() => setRenameOpen(true)}>
             <Hugeicons icon={Edit03Icon} /> Rename
-          </ContextMenuItem>
-          <ContextMenuSeparator />
-          <ContextMenuItem
-            variant="destructive"
-            onClick={() => setDeleteOpen(true)}
-          >
+          </MenuItem>
+          <MenuSeparator />
+          <MenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
             <Hugeicons icon={Delete01Icon} /> Delete
-          </ContextMenuItem>
-        </ContextMenuPopup>
-      </ContextMenu>
+          </MenuItem>
+        </MenuPopup>
+      </Menu>
       <RenameModal
         open={renameOpen}
         onOpenChange={setRenameOpen}

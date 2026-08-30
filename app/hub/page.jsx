@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import HubSidebar from "@/components/hub-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { isAuthorized } from "@/lib/telegram";
 import ActionBar from "@/components/action-bar";
 import { Tabs, TabsPanel } from "@/components/ui/tabs";
 import CurrentPath from "@/components/current-path";
@@ -25,6 +24,7 @@ import {
   Hugeicons,
 } from "@/components/utils/hugeicons";
 import { Button } from "@/components/ui/button";
+import { restoreSession } from "@/lib/telegram";
 
 export default function Layout() {
   const router = useRouter();
@@ -32,23 +32,18 @@ export default function Layout() {
   const empty = !FILES || FILES.length === 0;
   const [activeChannel, setActiveChannel] = useState(null);
 
+  // Guard: verify session is active on mount.
+  // restoreSession() checks the local .session_active marker file —
+  // instant filesystem stat, no network call, no timeout risk.
   useEffect(() => {
     let active = true;
-
-    async function guardRoute() {
-      try {
-        const authenticated = await isAuthorized();
-        if (!active) return;
-        if (!authenticated) {
-          router.replace("/");
-          return;
-        }
-      } catch {
+    restoreSession()
+      .then((res) => {
+        if (active && res?.state !== "authorized") router.replace("/");
+      })
+      .catch(() => {
         if (active) router.replace("/");
-      }
-    }
-
-    guardRoute();
+      });
     return () => {
       active = false;
     };
@@ -109,14 +104,14 @@ const FILES = [
     id: 1,
     name: "Clothing",
     type: "Folder",
-    thumbnail: "/files/folder.png",
+    thumbnail: "/item-thumbnails/folder.png",
     date: "12 Aug 2026 at 10:00 AM",
   },
   {
     id: 2,
     name: "Documents.pdf",
     type: "PDF",
-    thumbnail: "/files/pdf.png",
+    thumbnail: "/item-thumbnails/pdf.png",
     size: "1.2 MB",
     date: "05 Aug 2026 at 02:30 PM",
   },
@@ -124,7 +119,7 @@ const FILES = [
     id: 3,
     name: "Casual Portrait.png",
     type: "Image",
-    thumbnail: "/files/image.png",
+    thumbnail: "/item-thumbnails/image.png",
     size: "2.5 MB",
     date: "15 Aug 2026 at 03:45 PM",
   },
@@ -132,7 +127,7 @@ const FILES = [
     id: 4,
     name: "audioSprite a online-video-cutter cut_your_video_now.mp3",
     type: "Audio",
-    thumbnail: "/files/music_file.png",
+    thumbnail: "/item-thumbnails/music_file.png",
     size: "5.0 MB",
     date: "20 Aug 2026 at 04:15 PM",
   },
@@ -140,7 +135,7 @@ const FILES = [
     id: 5,
     name: "Documents.docx",
     type: "Document",
-    thumbnail: "/files/word_file.png",
+    thumbnail: "/item-thumbnails/word_file.png",
     size: "1.5 MB",
     date: "25 Aug 2026 at 05:30 PM",
   },
@@ -148,14 +143,14 @@ const FILES = [
     id: 10,
     name: "Clothing",
     type: "Folder",
-    thumbnail: "/files/folder.png",
+    thumbnail: "/item-thumbnails/folder.png",
     date: "12 Aug 2026 at 10:00 AM",
   },
   {
     id: 20,
     name: "Documents.pdf",
     type: "PDF",
-    thumbnail: "/files/pdf.png",
+    thumbnail: "/item-thumbnails/pdf.png",
     size: "1.2 MB",
     date: "05 Aug 2026 at 02:30 PM",
   },
@@ -163,7 +158,7 @@ const FILES = [
     id: 30,
     name: "Casual Portrait.png",
     type: "Image",
-    thumbnail: "/files/image.png",
+    thumbnail: "/item-thumbnails/image.png",
     size: "2.5 MB",
     date: "15 Aug 2026 at 03:45 PM",
   },
@@ -171,7 +166,7 @@ const FILES = [
     id: 40,
     name: "audioSprite a online-video-cutter cut_your_video_now.mp3",
     type: "Audio",
-    thumbnail: "/files/music_file.png",
+    thumbnail: "/item-thumbnails/music_file.png",
     size: "5.0 MB",
     date: "20 Aug 2026 at 04:15 PM",
   },
@@ -179,7 +174,7 @@ const FILES = [
     id: 50,
     name: "Documents.docx",
     type: "Document",
-    thumbnail: "/files/word_file.png",
+    thumbnail: "/item-thumbnails/word_file.png",
     size: "1.5 MB",
     date: "25 Aug 2026 at 05:30 PM",
   },
@@ -187,14 +182,14 @@ const FILES = [
     id: 100,
     name: "Clothing",
     type: "Folder",
-    thumbnail: "/files/folder.png",
+    thumbnail: "/item-thumbnails/folder.png",
     date: "12 Aug 2026 at 10:00 AM",
   },
   {
     id: 200,
     name: "Documents.pdf",
     type: "PDF",
-    thumbnail: "/files/pdf.png",
+    thumbnail: "/item-thumbnails/pdf.png",
     size: "1.2 MB",
     date: "05 Aug 2026 at 02:30 PM",
   },
@@ -202,7 +197,7 @@ const FILES = [
     id: 300,
     name: "Casual Portrait.png",
     type: "Image",
-    thumbnail: "/files/image.png",
+    thumbnail: "/item-thumbnails/image.png",
     size: "2.5 MB",
     date: "15 Aug 2026 at 03:45 PM",
   },
@@ -210,7 +205,7 @@ const FILES = [
     id: 400,
     name: "audioSprite a online-video-cutter cut_your_video_now.mp3",
     type: "Audio",
-    thumbnail: "/files/music_file.png",
+    thumbnail: "/item-thumbnails/music_file.png",
     size: "5.0 MB",
     date: "20 Aug 2026 at 04:15 PM",
   },
@@ -218,7 +213,7 @@ const FILES = [
     id: 500,
     name: "Documents.docx",
     type: "Document",
-    thumbnail: "/files/word_file.png",
+    thumbnail: "/item-thumbnails/word_file.png",
     size: "1.5 MB",
     date: "25 Aug 2026 at 05:30 PM",
   },

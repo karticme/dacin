@@ -2,6 +2,7 @@ use grammers_client::media::Uploaded;
 use grammers_client::tl;
 use grammers_session::types::{PeerAuth, PeerId, PeerRef};
 
+use super::folder::{add_peer_to_folder, remove_peer_from_folder};
 use super::registry::{channel_description, channel_title};
 
 /// Reconstruct a `PeerRef` from cached channel_id + access_hash.
@@ -92,7 +93,7 @@ pub(crate) async fn create_private_channel(
             for_import: false,
             forum: false,
             title: title.clone(),
-            about: channel_description(name, encrypted),
+            about: channel_description(encrypted),
             geo_point: None,
             address: None,
             ttl_period: None,
@@ -164,6 +165,11 @@ pub(crate) async fn create_private_channel(
         eprintln!("[channels] could not disable forwarding: {error}");
     }
 
+    // Add to @dacin folder (non-fatal if it fails)
+    if let Err(error) = add_peer_to_folder(client, &peer).await {
+        eprintln!("[channels] could not add channel to @dacin folder: {error}");
+    }
+
     // Send crypto messages sequentially (order matters: cfg before vfy)
     if let Some((cfg_msg, vfy_msg)) = crypto_msgs {
         client
@@ -185,7 +191,6 @@ pub(crate) async fn rename_telegram_channel(
     name: &str,
     encrypted: bool,
 ) -> Result<(), String> {
-    // Run title rename and description update concurrently
     let title_req = tl::functions::channels::EditTitle {
         channel: tl::enums::InputChannel::Channel(tl::types::InputChannel {
             channel_id: peer.id.bare_id(),
@@ -198,7 +203,7 @@ pub(crate) async fn rename_telegram_channel(
             channel_id: peer.id.bare_id(),
             access_hash: peer.auth.hash(),
         }),
-        about: channel_description(name, encrypted),
+        about: channel_description(encrypted),
     };
     let title_fut = client.invoke(&title_req);
     let about_fut = client.invoke(&about_req);
@@ -212,10 +217,17 @@ pub(crate) async fn delete_telegram_channel(
     client: &grammers_client::Client,
     peer: &PeerRef,
 ) -> Result<(), String> {
+    let channel_id = peer.id.bare_id();
+
+    // Remove from @dacin folder first (non-fatal)
+    if let Err(error) = remove_peer_from_folder(client, channel_id).await {
+        eprintln!("[channels] could not remove channel {channel_id} from @dacin folder: {error}");
+    }
+
     client
         .invoke(&tl::functions::channels::DeleteChannel {
             channel: tl::enums::InputChannel::Channel(tl::types::InputChannel {
-                channel_id: peer.id.bare_id(),
+                channel_id,
                 access_hash: peer.auth.hash(),
             }),
         })

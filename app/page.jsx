@@ -286,7 +286,7 @@ export default function Page() {
           </div>
 
           {checkingSession ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground shimmer">
               <Loader /> Checking your session...
             </div>
           ) : (
@@ -362,8 +362,8 @@ export default function Page() {
                       />
                     </Group>
                   </div>
-                  <Button type="submit" disabled={busy}>
-                    {busy && <Loader />} {busy ? "Sending OTP..." : "Send OTP"}
+                  <Button type="submit" loading={busy} disabled={busy}>
+                    {busy && <Loader />} {busy ? "Sending OTP" : "Send OTP"}
                   </Button>
                 </form>
               )}
@@ -407,8 +407,8 @@ export default function Page() {
                       ))}
                     </OTPField>
                   </div>
-                  <Button type="submit" disabled={busy}>
-                    {busy && <Loader />} {busy ? "Verifying..." : "Verify"}
+                  <Button type="submit" loading={busy} disabled={busy}>
+                    {busy && <Loader />} {busy ? "Verifying" : "Verify"}
                   </Button>
                 </form>
               )}
@@ -450,8 +450,8 @@ export default function Page() {
                       </InputGroupAddon>
                     </InputGroup>
                   </div>
-                  <Button type="submit" disabled={busy}>
-                    {busy && <Loader />} {busy ? "Checking..." : "Continue"}
+                  <Button type="submit" loading={busy} disabled={busy}>
+                    {busy ? "Checking" : "Continue"}
                   </Button>
                 </form>
               )}
