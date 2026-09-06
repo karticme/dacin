@@ -534,7 +534,7 @@ export function SidebarMenuBadge({ className, ...props }) {
   return (
     <div
       className={cn(
-        "pointer-events-none absolute right-1 group-has-data-[sidebar=menu-action]/menu-item:right-7 flex h-5 min-w-5 select-none items-center justify-center rounded-lg px-1 font-medium text-sidebar-foreground text-xs tabular-nums",
+        "pointer-events-none absolute right-1 group-hover/menu-item:group-has-data-[sidebar=menu-action]/menu-item:hidden flex h-5 min-w-5 select-none items-center justify-center rounded-lg px-1 font-medium text-sidebar-foreground text-xs tabular-nums",
         "peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[active=true]/menu-button:text-sidebar-accent-foreground",
         "peer-data-[size=sm]/menu-button:top-1",
         "peer-data-[size=default]/menu-button:top-1.5",

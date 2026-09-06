@@ -17,23 +17,37 @@ import {
 import RenameModal from "@/components/models/rename-item";
 import DeleteModal from "@/components/models/delete-item";
 
-export default function ViewContextMenu({ children, onOpenChange }) {
+export default function ViewContextMenu({
+  children,
+  item,
+  onOpenChange,
+  onOpen,
+  onRename,
+  onDelete,
+  onDownload,
+}) {
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const isFolder = item?.itemType === "folder" || item?.type === "folder" || item?.item_type === "folder";
+  const itemTypeLabel = isFolder ? "Folder" : "File";
+
   return (
     <>
       <ContextMenu onOpenChange={onOpenChange}>
         <ContextMenuTrigger render={children} />
         <ContextMenuPopup align="start">
-          <ContextMenuItem>
+          <ContextMenuItem onClick={() => onOpen?.(item)}>
             <Hugeicons icon={ArrowUpRight03Icon} /> Open
           </ContextMenuItem>
           <ContextMenuItem onClick={() => setRenameOpen(true)}>
             <Hugeicons icon={Edit03Icon} /> Rename
           </ContextMenuItem>
-          <ContextMenuItem>
-            <Hugeicons icon={Download01Icon} /> Download
-          </ContextMenuItem>
+          {!isFolder && (
+            <ContextMenuItem onClick={() => onDownload?.(item)}>
+              <Hugeicons icon={Download01Icon} /> Download
+            </ContextMenuItem>
+          )}
           <ContextMenuSeparator />
           <ContextMenuItem
             variant="destructive"
@@ -43,8 +57,20 @@ export default function ViewContextMenu({ children, onOpenChange }) {
           </ContextMenuItem>
         </ContextMenuPopup>
       </ContextMenu>
-      <RenameModal type="File" open={renameOpen} onOpenChange={setRenameOpen} />
-      <DeleteModal type="File" open={deleteOpen} onOpenChange={setDeleteOpen} />
+      <RenameModal
+        type={itemTypeLabel}
+        open={renameOpen}
+        onOpenChange={setRenameOpen}
+        name={item?.name || ""}
+        onRename={(newName) => onRename?.(item, newName)}
+      />
+      <DeleteModal
+        type={itemTypeLabel}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        name={item?.name || ""}
+        onDelete={() => onDelete?.(item)}
+      />
     </>
   );
 }

@@ -62,6 +62,7 @@ import DeleteModal from "@/components/models/delete-item";
 import { toastManager } from "@/components/ui/toast";
 import { Loader } from "@/components/ui/loader";
 import UploadStateSheet from "@/components/models/upload-state-sheet";
+import Truncated from "./utils/truncated";
 
 export default function HubSidebar({
   activeChannelId: controlledActiveChannelId,
@@ -233,7 +234,7 @@ export default function HubSidebar({
             </>
           ) : (
             <>
-              {profile && (
+              {profile && profile.firstName && (
                 <Avatar className="shrink-0 size-6 rounded-md border">
                   <AvatarImage src={profile?.photoUrl} draggable={false} />
                   <AvatarFallback>
@@ -243,9 +244,7 @@ export default function HubSidebar({
               )}
               <div className="min-w-0">
                 <p className="truncate text-sidebar-primary text-sm font-medium">
-                  {profile?.firstName
-                    ? profile.firstName + "'s Dacin"
-                    : "Dacin User"}
+                  {profile?.firstName + "'s Dacin" || "Dacin User"}
                 </p>
               </div>
             </>
@@ -326,21 +325,24 @@ export default function HubSidebar({
             >
               {profile && (
                 <>
-                  {profile && (
+                  {profile && profile.fullName && (
                     <Avatar className="size-10 rounded-lg border">
-                      <AvatarImage src={profile?.photoUrl} draggable={false} />
+                      <AvatarImage src={profile.photoUrl} draggable={false} />
                       <AvatarFallback>
-                        {profile?.fullName && profile.fullName.charAt(0)}
+                        {profile.fullName && profile.fullName.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                   )}
                   <div className="min-w-0 space-y-0.5 [&>p]:truncate">
-                    <p className="text-sm font-medium text-foreground">
-                      {profile?.fullName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {"@" + profile?.username}
-                    </p>
+                    <Truncated
+                      className="text-sm font-medium text-foreground"
+                      value={profile?.fullName || "Dacin User"}
+                    />
+                    {profile?.username && (
+                      <p className="text-xs text-muted-foreground">
+                        {"@" + profile.username}
+                      </p>
+                    )}
                   </div>
                 </>
               )}
@@ -424,7 +426,7 @@ function ChannelMenuItem({ channel, active, onSwitch, onRename, onDelete }) {
       <Menu>
         <MenuTrigger
           render={
-            <SidebarMenuAction>
+            <SidebarMenuAction className="hidden group-hover/menu-item:flex">
               <Hugeicons icon={MoreVerticalIcon} />
             </SidebarMenuAction>
           }

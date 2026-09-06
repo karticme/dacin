@@ -69,7 +69,7 @@ export default function Truncated({ value, className = "", lines = 1 }) {
     >
       <span className="min-w-0 shrink overflow-hidden text-ellipsis flex-[0_1_auto]">
         {fullHead}
-      </span>
+      </span>{" "}
       <span className="shrink-0 min-w-fit">{tail}</span>
     </p>
   );

@@ -1,6 +1,7 @@
 mod auth;
 mod channels;
 pub(crate) mod crypto;
+mod files;
 mod types;
 pub(crate) mod util;
 
@@ -36,6 +37,11 @@ pub fn run() {
             channels::commands::list_channels,
             channels::commands::rename_channel,
             channels::commands::delete_channel,
+            files::storage::setup_storage,
+            files::storage::list_files,
+            files::commands::create_folder,
+            files::commands::rename_item,
+            files::commands::delete_item,
             open_url,
         ])
         .run(tauri::generate_context!())

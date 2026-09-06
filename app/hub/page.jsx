@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import HubSidebar from "@/components/hub-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -24,17 +24,29 @@ import {
   Hugeicons,
 } from "@/components/utils/hugeicons";
 import { Button } from "@/components/ui/button";
-import { restoreSession } from "@/lib/telegram";
+import { Loader } from "@/components/ui/loader";
+import AddFolderModal from "@/components/models/add-folder";
+import { toastManager } from "@/components/ui/toast";
+import {
+  restoreSession,
+  setupStorage,
+  listFiles,
+  createFolder,
+  renameItem,
+  deleteItem,
+} from "@/lib/telegram";
 
 export default function Layout() {
   const router = useRouter();
   const [view, setView] = useState("grid");
-  const empty = !FILES || FILES.length === 0;
   const [activeChannel, setActiveChannel] = useState(null);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [currentFolderId, setCurrentFolderId] = useState("");
+  const [history, setHistory] = useState([""]);
+  const [historyIndex, setHistoryIndex] = useState(0);
 
-  // Guard: verify session is active on mount.
-  // restoreSession() checks the local .session_active marker file —
-  // instant filesystem stat, no network call, no timeout risk.
+  // Auth guard: verify session marker on mount
   useEffect(() => {
     let active = true;
     restoreSession()
@@ -49,6 +61,266 @@ export default function Layout() {
     };
   }, [router]);
 
+  // Load items when activeChannel changes
+  useEffect(() => {
+    if (!activeChannel) {
+      setItems([]);
+      setCurrentFolderId("");
+      setHistory([""]);
+      setHistoryIndex(0);
+      return;
+    }
+
+    let active = true;
+    setLoading(true);
+    setCurrentFolderId("");
+    setHistory([""]);
+    setHistoryIndex(0);
+
+    async function loadChannelData() {
+      try {
+        await setupStorage(
+          activeChannel.channel_id,
+          activeChannel.access_hash,
+          activeChannel.encrypted,
+        );
+        if (!active) return;
+        const fileList = await listFiles(
+          activeChannel.channel_id,
+          activeChannel.access_hash,
+          activeChannel.encrypted,
+        );
+        if (active) {
+          setItems(fileList || []);
+        }
+      } catch (error) {
+        if (active) {
+          console.error("Failed to load files:", error);
+          toastManager.add({
+            type: "error",
+            title: "Failed to load channel items",
+            description: String(error?.message || error),
+          });
+          setItems([]);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadChannelData();
+
+    return () => {
+      active = false;
+    };
+  }, [activeChannel]);
+
+  // Navigation handlers
+  const navigateToFolder = useCallback(
+    (folderId) => {
+      setCurrentFolderId(folderId);
+      setHistory((prev) => {
+        const newHistory = prev.slice(0, historyIndex + 1);
+        return [...newHistory, folderId];
+      });
+      setHistoryIndex((prev) => prev + 1);
+    },
+    [historyIndex],
+  );
+
+  const handleGoBack = useCallback(() => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setCurrentFolderId(history[newIndex]);
+    }
+  }, [history, historyIndex]);
+
+  const handleGoForward = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setCurrentFolderId(history[newIndex]);
+    }
+  }, [history, historyIndex]);
+
+  const handleBreadcrumbNavigate = useCallback(
+    (folderId) => {
+      if (folderId === currentFolderId) return;
+      navigateToFolder(folderId);
+    },
+    [currentFolderId, navigateToFolder],
+  );
+
+  // Build breadcrumb list
+  const breadcrumbs = useMemo(() => {
+    if (!activeChannel) return [];
+    const list = [{ id: "", name: activeChannel.name }];
+    if (!currentFolderId) return list;
+
+    // Walk up the parent chain
+    const folderChain = [];
+    let currentId = currentFolderId;
+    let guard = 0;
+
+    while (currentId && guard < 50) {
+      guard++;
+      const folder = items.find(
+        (i) =>
+          i.id === currentId &&
+          (i.itemType === "folder" ||
+            i.type === "folder" ||
+            i.item_type === "folder"),
+      );
+      if (!folder) break;
+      folderChain.unshift({ id: folder.id, name: folder.name });
+      currentId = folder.parentId || folder.parent_id || "";
+    }
+
+    return [...list, ...folderChain];
+  }, [activeChannel, currentFolderId, items]);
+
+  // Current folder name for action bar
+  const currentFolderName = useMemo(() => {
+    if (!currentFolderId) return activeChannel?.name || "Folder";
+    const cur = items.find((i) => i.id === currentFolderId);
+    return cur?.name || "Folder";
+  }, [currentFolderId, activeChannel, items]);
+
+  // Filter items for the current folder
+  const displayedItems = useMemo(() => {
+    return items.filter(
+      (item) => (item.parentId || item.parent_id || "") === currentFolderId,
+    );
+  }, [items, currentFolderId]);
+
+  const isEmpty = displayedItems.length === 0;
+
+  // Folder CRUD handlers
+  const handleCreateFolder = async (folderName) => {
+    if (!activeChannel) return;
+
+    const promise = createFolder(
+      activeChannel.channel_id,
+      activeChannel.access_hash,
+      folderName,
+      currentFolderId,
+      activeChannel.encrypted,
+    ).then((created) => {
+      setItems((prev) => [created, ...prev]);
+      return created;
+    });
+
+    toastManager.promise(promise, {
+      loading: {
+        title: "Creating folder",
+        description: `Adding "${folderName}" to current folder.`,
+        iconDirection: "up",
+      },
+      success: (folder) => ({
+        title: "Folder created",
+        description: `Folder "${folder.name}" created successfully.`,
+      }),
+      error: (error) => ({
+        title: "Failed to create folder",
+        description: String(error?.message || error),
+      }),
+    });
+
+    return promise;
+  };
+
+  const handleRenameItem = async (item, newName) => {
+    if (!activeChannel) return;
+
+    const messageId = item.messageId || item.message_id;
+    const promise = renameItem(
+      activeChannel.channel_id,
+      activeChannel.access_hash,
+      messageId,
+      newName,
+      activeChannel.encrypted,
+    ).then((renamed) => {
+      setItems((prev) =>
+        prev.map((i) =>
+          (i.messageId || i.message_id) === messageId
+            ? { ...i, ...renamed }
+            : i,
+        ),
+      );
+      return renamed;
+    });
+
+    toastManager.promise(promise, {
+      loading: {
+        title: "Renaming item",
+        description: `Updating "${item.name}" -> "${newName}"`,
+        iconDirection: "right",
+      },
+      success: (renamed) => ({
+        title: "Item renamed",
+        description: `"${item.name}" renamed to "${renamed.name}".`,
+      }),
+      error: (error) => ({
+        title: "Failed to rename item",
+        description: String(error?.message || error),
+      }),
+    });
+
+    return promise;
+  };
+
+  const handleDeleteItem = async (item) => {
+    if (!activeChannel) return;
+
+    const messageId = item.messageId || item.message_id;
+    const promise = deleteItem(
+      activeChannel.channel_id,
+      activeChannel.access_hash,
+      messageId,
+    ).then(() => {
+      setItems((prev) =>
+        prev.filter((i) => (i.messageId || i.message_id) !== messageId),
+      );
+    });
+
+    const isFolder =
+      item.itemType === "folder" ||
+      item.type === "folder" ||
+      item.item_type === "folder";
+
+    toastManager.promise(promise, {
+      loading: {
+        title: `Deleting ${isFolder ? "folder" : "file"}`,
+        description: `Removing "${item.name}" from channel.`,
+        iconDirection: "down",
+        iconClass: "[&_svg]:text-destructive",
+      },
+      success: () => ({
+        title: `"${item.name}" deleted`,
+        iconClass: "[&_svg]:text-destructive",
+      }),
+      error: (error) => ({
+        title: "Failed to delete item",
+        description: String(error?.message || error),
+      }),
+    });
+
+    return promise;
+  };
+
+  const handleOpenItem = (item) => {
+    const isFolder =
+      item.itemType === "folder" ||
+      item.type === "folder" ||
+      item.item_type === "folder";
+    if (isFolder) {
+      navigateToFolder(item.id);
+    }
+  };
+
   return (
     <SidebarProvider>
       <HubSidebar
@@ -57,16 +329,39 @@ export default function Layout() {
       />
       <Tabs className="flex-1" value={view} onValueChange={setView}>
         <SidebarInset>
-          <ActionBar disabled={empty} />
-          {empty ? (
+          <ActionBar
+            disabled={!activeChannel || loading || isEmpty}
+            currentFolderName={currentFolderName}
+            canGoBack={historyIndex > 0}
+            canGoForward={historyIndex < history.length - 1}
+            onGoBack={handleGoBack}
+            onGoForward={handleGoForward}
+          />
+          {loading ? (
+            <div className="h-[calc(100vh-80px)] flex items-center justify-center gap-3 text-foreground">
+              <Loader className="size-5" />
+            </div>
+          ) : !activeChannel ? (
             <Empty className="h-[calc(100vh-80px)]">
               <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Hugeicons icon={ZzzIcon} />
-                </EmptyMedia>
-                <EmptyTitle>Channel is Empty</EmptyTitle>
+                <EmptyTitle>No Channel Selected</EmptyTitle>
                 <EmptyDescription>
-                  Channel has no file or folder.
+                  Select a channel from the sidebar to view files and folders.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          ) : isEmpty ? (
+            <Empty className="h-[calc(100vh-80px)]">
+              <EmptyHeader>
+                <img
+                  src="https://i.giphy.com/YdhvjTeL83pNS.webp"
+                  alt="Empty folder"
+                  className="size-32 rounded-lg mb-6"
+                  draggable={false}
+                />
+                <EmptyTitle>Folder is Empty</EmptyTitle>
+                <EmptyDescription>
+                  No files or folders yet.
                 </EmptyDescription>
               </EmptyHeader>
               <EmptyContent>
@@ -75,146 +370,41 @@ export default function Layout() {
                     <Hugeicons icon={Upload01Icon} />
                     Upload File
                   </Button>
-                  <Button variant="outline">
-                    <Hugeicons icon={FolderAddIcon} />
-                    Add Folder
-                  </Button>
+                  <AddFolderModal onCreate={handleCreateFolder}>
+                    <Button variant="outline">
+                      <Hugeicons icon={FolderAddIcon} />
+                      Add Folder
+                    </Button>
+                  </AddFolderModal>
                 </div>
               </EmptyContent>
             </Empty>
           ) : (
             <main className="h-[calc(100vh-80px)] overflow-auto">
               <TabsPanel value="grid" className="overflow-y-auto">
-                <GridView data={FILES} />
+                <GridView
+                  data={displayedItems}
+                  onOpen={handleOpenItem}
+                  onRename={handleRenameItem}
+                  onDelete={handleDeleteItem}
+                />
               </TabsPanel>
               <TabsPanel value="list">
-                <ListView data={FILES} />
+                <ListView
+                  data={displayedItems}
+                  onOpen={handleOpenItem}
+                  onRename={handleRenameItem}
+                  onDelete={handleDeleteItem}
+                />
               </TabsPanel>
             </main>
           )}
-          <CurrentPath />
+          <CurrentPath
+            breadcrumbs={breadcrumbs}
+            onNavigate={handleBreadcrumbNavigate}
+          />
         </SidebarInset>
       </Tabs>
     </SidebarProvider>
   );
 }
-
-const FILES = [
-  {
-    id: 1,
-    name: "Clothing",
-    type: "Folder",
-    thumbnail: "/item-thumbnails/folder.png",
-    date: "12 Aug 2026 at 10:00 AM",
-  },
-  {
-    id: 2,
-    name: "Documents.pdf",
-    type: "PDF",
-    thumbnail: "/item-thumbnails/pdf.png",
-    size: "1.2 MB",
-    date: "05 Aug 2026 at 02:30 PM",
-  },
-  {
-    id: 3,
-    name: "Casual Portrait.png",
-    type: "Image",
-    thumbnail: "/item-thumbnails/image.png",
-    size: "2.5 MB",
-    date: "15 Aug 2026 at 03:45 PM",
-  },
-  {
-    id: 4,
-    name: "audioSprite a online-video-cutter cut_your_video_now.mp3",
-    type: "Audio",
-    thumbnail: "/item-thumbnails/music_file.png",
-    size: "5.0 MB",
-    date: "20 Aug 2026 at 04:15 PM",
-  },
-  {
-    id: 5,
-    name: "Documents.docx",
-    type: "Document",
-    thumbnail: "/item-thumbnails/word_file.png",
-    size: "1.5 MB",
-    date: "25 Aug 2026 at 05:30 PM",
-  },
-  {
-    id: 10,
-    name: "Clothing",
-    type: "Folder",
-    thumbnail: "/item-thumbnails/folder.png",
-    date: "12 Aug 2026 at 10:00 AM",
-  },
-  {
-    id: 20,
-    name: "Documents.pdf",
-    type: "PDF",
-    thumbnail: "/item-thumbnails/pdf.png",
-    size: "1.2 MB",
-    date: "05 Aug 2026 at 02:30 PM",
-  },
-  {
-    id: 30,
-    name: "Casual Portrait.png",
-    type: "Image",
-    thumbnail: "/item-thumbnails/image.png",
-    size: "2.5 MB",
-    date: "15 Aug 2026 at 03:45 PM",
-  },
-  {
-    id: 40,
-    name: "audioSprite a online-video-cutter cut_your_video_now.mp3",
-    type: "Audio",
-    thumbnail: "/item-thumbnails/music_file.png",
-    size: "5.0 MB",
-    date: "20 Aug 2026 at 04:15 PM",
-  },
-  {
-    id: 50,
-    name: "Documents.docx",
-    type: "Document",
-    thumbnail: "/item-thumbnails/word_file.png",
-    size: "1.5 MB",
-    date: "25 Aug 2026 at 05:30 PM",
-  },
-  {
-    id: 100,
-    name: "Clothing",
-    type: "Folder",
-    thumbnail: "/item-thumbnails/folder.png",
-    date: "12 Aug 2026 at 10:00 AM",
-  },
-  {
-    id: 200,
-    name: "Documents.pdf",
-    type: "PDF",
-    thumbnail: "/item-thumbnails/pdf.png",
-    size: "1.2 MB",
-    date: "05 Aug 2026 at 02:30 PM",
-  },
-  {
-    id: 300,
-    name: "Casual Portrait.png",
-    type: "Image",
-    thumbnail: "/item-thumbnails/image.png",
-    size: "2.5 MB",
-    date: "15 Aug 2026 at 03:45 PM",
-  },
-  {
-    id: 400,
-    name: "audioSprite a online-video-cutter cut_your_video_now.mp3",
-    type: "Audio",
-    thumbnail: "/item-thumbnails/music_file.png",
-    size: "5.0 MB",
-    date: "20 Aug 2026 at 04:15 PM",
-  },
-  {
-    id: 500,
-    name: "Documents.docx",
-    type: "Document",
-    thumbnail: "/item-thumbnails/word_file.png",
-    size: "1.5 MB",
-    date: "25 Aug 2026 at 05:30 PM",
-  },
-];

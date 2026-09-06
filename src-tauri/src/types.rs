@@ -3,6 +3,7 @@ use grammers_client::Client;
 use grammers_mtsender::SenderPool;
 use grammers_session::storages::SqliteSession;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -47,11 +48,47 @@ pub(crate) struct ChannelEntry {
     pub encrypted: bool,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct FileItem {
+    pub id: String,
+    pub name: String,
+    pub item_type: String,
+    pub mime_type: String,
+    pub size: u64,
+    pub parent_id: String,
+    pub channel_id: i64,
+    pub message_id: i32,
+    pub document_message_id: Option<i32>,
+    pub created_at: String,
+    pub updated_at: String,
+    pub encrypted_file_key: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub(crate) struct InnerMeta {
+    pub id: String,
+    pub n: String,
+    pub t: String,
+    pub m: String,
+    pub s: u64,
+    pub p: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub d: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub k: Option<String>,
+    pub c: String,
+    pub u: String,
+}
+
 pub(crate) struct TelegramService {
     pub client: Client,
     pub credentials: StoredCredentials,
     pub login_token: Mutex<Option<LoginToken>>,
     pub password_token: Mutex<Option<PasswordToken>>,
+    /// Per-channel metadata keys derived from Argon2(phone, salt).
+    /// Populated by `setup_storage` for encrypted channels.
+    pub channel_keys: Mutex<HashMap<i64, [u8; 32]>>,
 }
 
 pub(crate) struct TelegramState {
@@ -109,6 +146,7 @@ impl TelegramService {
             credentials,
             login_token: Mutex::new(None),
             password_token: Mutex::new(None),
+            channel_keys: Mutex::new(HashMap::new()),
         })
     }
 }

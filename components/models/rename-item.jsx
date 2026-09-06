@@ -41,7 +41,7 @@ export default function RenameModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} disablePointerDismissal>
       <DialogPopup render={<form onSubmit={handleSubmit} />}>
         <DialogHeader>
           <DialogTitle>Rename {type}</DialogTitle>

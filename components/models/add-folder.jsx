@@ -28,7 +28,7 @@ export default function AddFolderModal({ children, onCreate }) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={setOpen} disablePointerDismissal>
       <DialogTrigger render={children} />
       <DialogPopup render={<form onSubmit={handleSubmit} />}>
         <DialogHeader>

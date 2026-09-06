@@ -60,12 +60,16 @@ pub(crate) async fn discover_channels(
         let about = full.full_chat.about();
         let encrypted = encrypted_from_description(&about);
 
-        // Extract name from the chat title
+        // Extract name and fresh access hash from the chat
+        let mut fresh_access_hash = access_hash;
         let name = full
             .chats
             .into_iter()
             .find_map(|chat| match chat {
                 tl::enums::Chat::Channel(c) if c.id == channel_id => {
+                    if let Some(h) = c.access_hash {
+                        fresh_access_hash = h;
+                    }
                     c.title.strip_suffix(CHANNEL_SUFFIX).map(str::to_string)
                 }
                 _ => None,
@@ -79,7 +83,7 @@ pub(crate) async fn discover_channels(
         channels.push(ChannelEntry {
             name,
             channel_id,
-            access_hash,
+            access_hash: fresh_access_hash,
             encrypted,
         });
     }

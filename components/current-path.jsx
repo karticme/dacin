@@ -1,55 +1,49 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/ui/button";
 import {
   Breadcrumb,
-  BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Menu, MenuItem, MenuPopup, MenuTrigger } from "@/components/ui/menu";
-import { Loader } from "@/components/ui/loader";
 
-export default function CurrentPath() {
+export default function CurrentPath({ breadcrumbs = [], onNavigate }) {
+  if (!breadcrumbs || breadcrumbs.length === 0) {
+    return (
+      <footer className="w-full h-10 bg-sidebar flex items-center justify-between border-t px-3.5" />
+    );
+  }
+
   return (
-    <footer className="w-full h-10 bg-sidebar flex items-center justify-between border-t px-3.5">
+    <footer className="w-full h-10 bg-sidebar flex items-center justify-between border-t px-3.5 select-none">
       <Breadcrumb className="mb-px">
         <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink render={<a href="/" />}>Home</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <Menu>
-              <MenuTrigger
-                render={
-                  <Button
-                    className="-m-1.5 text-muted-foreground"
-                    size="icon-sm"
-                    variant="ghost"
-                  />
-                }
-              >
-                <BreadcrumbEllipsis />
-              </MenuTrigger>
-              <MenuPopup align="start">
-                <MenuItem render={<a href="/hub" />}>Docs</MenuItem>
-                <MenuItem render={<a href="/hub" />}>Particles</MenuItem>
-              </MenuPopup>
-            </Menu>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink render={<a href="/" />}>Components</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Breadcrumb</BreadcrumbPage>
-          </BreadcrumbItem>
+          {breadcrumbs.map((crumb, index) => {
+            const isLast = index === breadcrumbs.length - 1;
+            return (
+              <React.Fragment key={crumb.id || "root"}>
+                <BreadcrumbItem>
+                  {isLast ? (
+                    <BreadcrumbPage>{crumb.name}</BreadcrumbPage>
+                  ) : (
+                    <BreadcrumbLink
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onNavigate?.(crumb.id);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      {crumb.name}
+                    </BreadcrumbLink>
+                  )}
+                </BreadcrumbItem>
+                {!isLast && <BreadcrumbSeparator />}
+              </React.Fragment>
+            );
+          })}
         </BreadcrumbList>
       </Breadcrumb>
     </footer>

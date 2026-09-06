@@ -35,27 +35,48 @@ const SORT_OPTIONS = [
   { value: "created", label: "Created" },
 ];
 
-export default function ActionBar({ disabled }) {
-  const [sortOrder, setSortOrder] = React.useState("created");
+export default function ActionBar({
+  disabled,
+  currentFolderName = "Folder",
+  canGoBack = false,
+  canGoForward = false,
+  onGoBack,
+  onGoForward,
+  sortOrder: controlledSortOrder,
+  onSortChange,
+}) {
+  const [internalSortOrder, setInternalSortOrder] = React.useState("created");
+  const sortOrder = controlledSortOrder ?? internalSortOrder;
+  const setSortOrder = onSortChange ?? setInternalSortOrder;
 
   return (
     <header
-      className="w-full h-10 bg-sidebar flex items-center justify-between border-b px-2 tauri-drag-region"
+      className="w-full h-10 bg-sidebar flex items-center justify-between border-b px-2 tauri-drag-region select-none"
       data-tauri-drag-region
     >
       <div className="flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger render={<div className="space-x-0.5" />}>
-            <Button size="icon-sm" variant="ghost" disabled={disabled}>
+            <Button
+              size="icon-sm"
+              variant="ghost"
+              disabled={!canGoBack}
+              onClick={onGoBack}
+            >
               <Hugeicons icon={ArrowLeft01Icon} />
             </Button>
-            <Button size="icon-sm" variant="ghost" disabled={disabled}>
+            <Button
+              size="icon-sm"
+              variant="ghost"
+              disabled={!canGoForward}
+              onClick={onGoForward}
+            >
               <Hugeicons icon={ArrowRight01Icon} />
             </Button>
           </TooltipTrigger>
           <TooltipPopup>See folders you viewed previously</TooltipPopup>
         </Tooltip>
-        <h1 className="text-sm">Folder</h1>
+        <h1 className="text-sm font-medium truncate max-w-64">{currentFolderName}</h1>
       </div>
       <div className="flex items-center gap-1">
         <TooltipProvider>
