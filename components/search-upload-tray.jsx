@@ -23,10 +23,19 @@ import {
 } from "@/components/ui/input-group";
 import AddFolderModal from "@/components/models/add-folder";
 
-export default function SearchUploadTray({ loading }) {
+export default function SearchUploadTray({
+  disabled = false,
+  onCreateFolder,
+  onUpload,
+  searchQuery: controlledSearchQuery,
+  onSearchQueryChange,
+}) {
   const [searchOn, setSearchOn] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [internalSearchQuery, setInternalSearchQuery] = useState("");
   const searchInput = useRef(null);
+
+  const searchQuery = controlledSearchQuery ?? internalSearchQuery;
+  const setSearchQuery = onSearchQueryChange ?? setInternalSearchQuery;
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -54,7 +63,12 @@ export default function SearchUploadTray({ loading }) {
           <Tooltip>
             <TooltipTrigger
               render={
-                <Button className="flex-1" size="xl" disabled={loading} />
+                <Button
+                  className="flex-1"
+                  size="xl"
+                  disabled={disabled}
+                  onClick={onUpload}
+                />
               }
             >
               <Hugeicons icon={Upload01Icon} />
@@ -62,14 +76,14 @@ export default function SearchUploadTray({ loading }) {
             <TooltipPopup>Upload Files</TooltipPopup>
           </Tooltip>
           <Tooltip>
-            <AddFolderModal>
+            <AddFolderModal onCreate={onCreateFolder}>
               <TooltipTrigger
                 render={
                   <Button
                     className="flex-1"
                     size="xl"
                     variant="outline"
-                    disabled={loading}
+                    disabled={disabled}
                   />
                 }
               >
@@ -95,7 +109,7 @@ export default function SearchUploadTray({ loading }) {
                     <Button
                       size="icon-xl"
                       variant="ghost"
-                      disabled={loading}
+                      disabled={disabled}
                       onClick={() => {
                         setSearchOn(true);
                         searchInput.current?.focus();

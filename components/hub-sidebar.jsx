@@ -48,7 +48,7 @@ import {
   renameChannel,
   signOut,
 } from "@/lib/telegram";
-import { clearProfileCache, getProfile } from "@/lib/utils";
+import { clearProfileCache, getProfile } from "@/lib/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -65,8 +65,14 @@ import UploadStateSheet from "@/components/models/upload-state-sheet";
 import Truncated from "./utils/truncated";
 
 export default function HubSidebar({
+  activeChannel,
   activeChannelId: controlledActiveChannelId,
   onChannelChange,
+  onCreateFolder,
+  onUpload,
+  channelLoading = false,
+  searchQuery,
+  onSearchQueryChange,
   ...props
 }) {
   const [loading, setLoading] = useState(true);
@@ -74,7 +80,7 @@ export default function HubSidebar({
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [channels, setChannels] = useState([]);
   const [localActiveChannelId, setLocalActiveChannelId] = useState(null);
-  const activeChannelId = controlledActiveChannelId ?? localActiveChannelId;
+  const activeChannelId = controlledActiveChannelId ?? activeChannel?.channel_id ?? localActiveChannelId;
 
   function selectChannel(channel) {
     setLocalActiveChannelId(channel.channel_id);
@@ -95,7 +101,7 @@ export default function HubSidebar({
       .then((cached) => {
         if (cached && cached.length > 0) {
           setChannels(cached);
-          if (cached[0] && !controlledActiveChannelId) {
+          if (cached[0] && !controlledActiveChannelId && !activeChannel) {
             selectChannel(cached[0]);
           }
         }
@@ -107,7 +113,7 @@ export default function HubSidebar({
       .then((items) => {
         setChannels(items);
         if (items.length > 0) {
-          if (!controlledActiveChannelId && items[0]) {
+          if (!controlledActiveChannelId && !activeChannel && items[0]) {
             selectChannel(items[0]);
           }
         } else {
@@ -223,6 +229,8 @@ export default function HubSidebar({
     window.location.reload();
   }
 
+  const isTrayDisabled = loading || channelLoading || !activeChannel;
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -254,7 +262,13 @@ export default function HubSidebar({
             data-tauri-drag-region
           />
         </div>
-        <SearchUploadTray disabled={loading} />
+        <SearchUploadTray
+          disabled={isTrayDisabled}
+          onCreateFolder={onCreateFolder}
+          onUpload={onUpload}
+          searchQuery={searchQuery}
+          onSearchQueryChange={onSearchQueryChange}
+        />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup className="pt-0">
@@ -442,17 +456,17 @@ function ChannelMenuItem({ channel, active, onSwitch, onRename, onDelete }) {
         </MenuPopup>
       </Menu>
       <RenameModal
+        type="Channel"
         open={renameOpen}
         onOpenChange={setRenameOpen}
-        type="Channel"
         name={channel.name}
         encrypted={channel.encrypted}
         onRename={(name) => onRename(channel, name)}
       />
       <DeleteModal
+        type="Channel"
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        type="Channel"
         name={channel.name}
         onDelete={() => onDelete(channel)}
       />

@@ -205,33 +205,21 @@ pub(crate) async fn restore_session(
     state: State<'_, TelegramState>,
 ) -> Result<AuthResponse, String> {
     // Fast path: if the session marker file exists, the user is logged in.
-    // This is a local file check with zero network I/O — instant on cold start.
-    // The Telegram connection will be established lazily in the background.
     if util::session_marker_exists() {
-        // Still need credentials loaded so subsequent commands work
-        if state.service().await.is_err() {
-            if let Some(credentials) = util::load_credentials().await? {
-                // Start the service (SQLite + MTProto pool) in the background;
-                // don't await the network — just kick it off.
-                let _ = state.set_service(credentials).await;
-            }
-        }
+        // Ensure service singleton is initialized
+        let _ = state.service().await;
         return Ok(authorized_message());
     }
 
     // Cold path: no marker means either first run or signed out.
-    // Fall back to credentials check.
     let service = match state.service().await {
         Ok(service) => service,
-        Err(_) => match util::load_credentials().await? {
-            Some(credentials) => state.set_service(credentials).await?,
-            None => {
-                return Ok(util::status(
-                    AuthState::MissingCredentials,
-                    "No saved Telegram session found. Enter your phone number to sign in.",
-                ))
-            }
-        },
+        Err(_) => {
+            return Ok(util::status(
+                AuthState::MissingCredentials,
+                "No saved Telegram session found. Enter your phone number to sign in.",
+            ))
+        }
     };
 
     if matches!(check_authorized(&service.client).await?, Some(true)) {

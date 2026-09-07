@@ -2,6 +2,7 @@ use crate::channels::telegram::peer_from_cache;
 use crate::types::{FileItem, InnerMeta, TelegramState};
 use grammers_client::tl;
 use grammers_session::types::PeerRef;
+use std::time::Duration;
 use tauri::State;
 
 // ── Private helpers ────────────────────────────────────────────────────────
@@ -70,33 +71,48 @@ pub(crate) fn parse_message_text(text: &str, key: Option<&[u8; 32]>) -> Option<I
     serde_json::from_str::<InnerMeta>(text).ok()
 }
 
-/// Robustly resolves a channel PeerRef. Invoking GetFullChannel primes the
-/// MTProto session cache so subsequent calls like iter_messages (messages.getHistory)
-/// succeed without CHANNEL_INVALID.
+/// Robustly resolves a channel PeerRef with retry on dropped connections.
+/// Invoking GetFullChannel primes the MTProto session cache so subsequent calls
+/// like iter_messages succeed without CHANNEL_INVALID.
 pub(crate) async fn resolve_channel_peer(
     client: &grammers_client::Client,
     channel_id: i64,
     access_hash: i64,
 ) -> Result<PeerRef, String> {
-    let full = client
-        .invoke(&tl::functions::channels::GetFullChannel {
-            channel: tl::enums::InputChannel::Channel(tl::types::InputChannel {
-                channel_id,
-                access_hash,
-            }),
-        })
-        .await;
+    for attempt in 0..3 {
+        let full = client
+            .invoke(&tl::functions::channels::GetFullChannel {
+                channel: tl::enums::InputChannel::Channel(tl::types::InputChannel {
+                    channel_id,
+                    access_hash,
+                }),
+            })
+            .await;
 
-    if let Ok(tl::enums::messages::ChatFull::Full(full)) = full {
-        for chat in full.chats {
-            if let tl::enums::Chat::Channel(ch) = chat {
-                if ch.id == channel_id {
-                    let fresh_hash = ch.access_hash.unwrap_or(access_hash);
-                    return peer_from_cache(channel_id, fresh_hash);
+        match full {
+            Ok(tl::enums::messages::ChatFull::Full(full)) => {
+                for chat in full.chats {
+                    if let tl::enums::Chat::Channel(ch) = chat {
+                        if ch.id == channel_id {
+                            let fresh_hash = ch.access_hash.unwrap_or(access_hash);
+                            return peer_from_cache(channel_id, fresh_hash);
+                        }
+                    }
+                }
+                return peer_from_cache(channel_id, access_hash);
+            }
+            Err(e) => {
+                let err_str = e.to_string();
+                if attempt < 2
+                    && (err_str.contains("dropped")
+                        || err_str.contains("cancelled")
+                        || err_str.contains("reset"))
+                {
+                    tokio::time::sleep(Duration::from_millis(250 * (attempt + 1))).await;
+                    continue;
                 }
             }
         }
-        return peer_from_cache(channel_id, access_hash);
     }
 
     // Fallback: locate peer from active user dialogs
@@ -110,20 +126,46 @@ pub(crate) async fn fetch_all_items(
     channel_id: i64,
     key: Option<&[u8; 32]>,
 ) -> Result<Vec<FileItem>, String> {
-    let mut items = Vec::new();
-    let mut messages = client.iter_messages(peer);
+    for attempt in 0..3 {
+        let mut items = Vec::new();
+        let mut messages = client.iter_messages(peer);
+        let mut retry = false;
 
-    while let Some(msg) = messages.next().await.map_err(|e| e.to_string())? {
-        let text = msg.text();
-        if text.is_empty() {
-            continue;
+        loop {
+            match messages.next().await {
+                Ok(Some(msg)) => {
+                    let text = msg.text();
+                    if text.is_empty() {
+                        continue;
+                    }
+                    if let Some(meta) = parse_message_text(text, key) {
+                        items.push(meta_to_item(meta, channel_id, msg.id()));
+                    }
+                }
+                Ok(None) => break,
+                Err(e) => {
+                    let err_str = e.to_string();
+                    if attempt < 2
+                        && (err_str.contains("dropped")
+                            || err_str.contains("cancelled")
+                            || err_str.contains("reset"))
+                    {
+                        retry = true;
+                        tokio::time::sleep(Duration::from_millis(250 * (attempt + 1))).await;
+                        break;
+                    } else {
+                        return Err(err_str);
+                    }
+                }
+            }
         }
-        if let Some(meta) = parse_message_text(text, key) {
-            items.push(meta_to_item(meta, channel_id, msg.id()));
+
+        if !retry {
+            return Ok(items);
         }
     }
 
-    Ok(items)
+    Err("Failed to load channel messages".to_string())
 }
 
 // ── Tauri commands ─────────────────────────────────────────────────────────
@@ -158,19 +200,31 @@ pub(crate) async fn setup_storage(
     }
 
     // Find the cfg message and derive the key from the salt it contains
-    let mut messages = service.client.iter_messages(peer);
-    while let Some(msg) = messages.next().await.map_err(|e| e.to_string())? {
-        let text = msg.text();
-        if text.is_empty() {
-            continue;
-        }
-        if let Ok(cfg) = serde_json::from_str::<CfgMsg>(text) {
-            if cfg.t == "cfg" {
-                let key = crate::crypto::derive_key(&phone, &cfg.s)
-                    .map_err(|e| format!("Key derivation failed: {e}"))?;
-                service.channel_keys.lock().await.insert(channel_id, key);
-                return Ok(());
+    for attempt in 0..3 {
+        let mut messages = service.client.iter_messages(peer);
+
+        while let Ok(maybe_msg) = messages.next().await {
+            match maybe_msg {
+                Some(msg) => {
+                    let text = msg.text();
+                    if text.is_empty() {
+                        continue;
+                    }
+                    if let Ok(cfg) = serde_json::from_str::<CfgMsg>(text) {
+                        if cfg.t == "cfg" {
+                            let key = crate::crypto::derive_key(&phone, &cfg.s)
+                                .map_err(|e| format!("Key derivation failed: {e}"))?;
+                            service.channel_keys.lock().await.insert(channel_id, key);
+                            return Ok(());
+                        }
+                    }
+                }
+                None => break,
             }
+        }
+
+        if attempt < 2 {
+            tokio::time::sleep(Duration::from_millis(250 * (attempt + 1))).await;
         }
     }
 

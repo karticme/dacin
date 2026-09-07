@@ -106,20 +106,25 @@ impl TelegramState {
         &self,
         credentials: StoredCredentials,
     ) -> Result<Arc<TelegramService>, String> {
+        let mut guard = self.service.lock().await;
         let service = Arc::new(TelegramService::new(credentials).await?);
-        *self.service.lock().await = Some(service.clone());
+        *guard = Some(service.clone());
         Ok(service)
     }
 
     pub async fn service(&self) -> Result<Arc<TelegramService>, String> {
-        if let Some(service) = self.service.lock().await.as_ref() {
+        let mut guard = self.service.lock().await;
+        if let Some(service) = guard.as_ref() {
             return Ok(service.clone());
         }
 
         let credentials = crate::util::load_credentials()
             .await?
             .ok_or_else(|| "Telegram credentials are not set yet".to_string())?;
-        self.set_service(credentials).await
+
+        let service = Arc::new(TelegramService::new(credentials).await?);
+        *guard = Some(service.clone());
+        Ok(service)
     }
 }
 

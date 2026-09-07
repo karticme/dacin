@@ -16,6 +16,7 @@ import {
 
 import RenameModal from "@/components/models/rename-item";
 import DeleteModal from "@/components/models/delete-item";
+import { isFolderItem } from "@/lib/item-utils";
 
 export default function ViewContextMenu({
   children,
@@ -29,7 +30,7 @@ export default function ViewContextMenu({
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const isFolder = item?.itemType === "folder" || item?.type === "folder" || item?.item_type === "folder";
+  const isFolder = isFolderItem(item);
   const itemTypeLabel = isFolder ? "Folder" : "File";
 
   return (

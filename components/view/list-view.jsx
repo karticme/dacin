@@ -1,30 +1,8 @@
 import { useState } from "react";
 import Truncated from "@/components/utils/truncated";
 import ViewContextMenu from "@/components/view/view-context-menu";
-
-function formatFileSize(bytes) {
-  if (!bytes || bytes === 0) return "";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return "";
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return dateStr;
-  }
-}
+import { formatFileSize, formatDate } from "@/lib/formats";
+import { isFolderItem, getItemThumbnail, getItemTypeDisplay } from "@/lib/item-utils";
 
 export default function ListView({
   data = [],
@@ -45,17 +23,10 @@ export default function ListView({
         <div className="col-span-4 lg:col-span-3">Date Created</div>
       </div>
       {data.map((item) => {
-        const isFolder =
-          item.itemType === "folder" ||
-          item.type === "folder" ||
-          item.item_type === "folder";
-        const thumbnail =
-          item.thumbnail ||
-          (isFolder ? "/item-thumbnails/folder.png" : "/item-thumbnails/document.png");
+        const isFolder = isFolderItem(item);
+        const thumbnail = getItemThumbnail(item);
         const formattedSize = isFolder ? "-" : formatFileSize(item.size);
-        const itemTypeDisplay = isFolder
-          ? "Folder"
-          : item.mimeType || item.mime_type || "File";
+        const itemTypeDisplay = getItemTypeDisplay(item);
         const formattedDate = formatDate(item.createdAt || item.created_at);
 
         return (

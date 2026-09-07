@@ -1,14 +1,8 @@
 import { useState } from "react";
 import Truncated from "@/components/utils/truncated";
 import ViewContextMenu from "@/components/view/view-context-menu";
-
-function formatFileSize(bytes) {
-  if (!bytes || bytes === 0) return "";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-}
+import { formatFileSize } from "@/lib/formats";
+import { isFolderItem, getItemThumbnail } from "@/lib/item-utils";
 
 export default function GridView({
   data = [],
@@ -22,13 +16,8 @@ export default function GridView({
   return (
     <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 p-4 py-6">
       {data.map((item) => {
-        const isFolder =
-          item.itemType === "folder" ||
-          item.type === "folder" ||
-          item.item_type === "folder";
-        const thumbnail =
-          item.thumbnail ||
-          (isFolder ? "/item-thumbnails/folder.png" : "/item-thumbnails/document.png");
+        const isFolder = isFolderItem(item);
+        const thumbnail = getItemThumbnail(item);
         const formattedSize = isFolder ? "" : formatFileSize(item.size);
 
         return (

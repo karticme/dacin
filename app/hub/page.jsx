@@ -14,13 +14,11 @@ import {
   EmptyContent,
   EmptyDescription,
   EmptyHeader,
-  EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
 import {
   Upload01Icon,
   FolderAddIcon,
-  ZzzIcon,
   Hugeicons,
 } from "@/components/utils/hugeicons";
 import { Button } from "@/components/ui/button";
@@ -35,6 +33,11 @@ import {
   renameItem,
   deleteItem,
 } from "@/lib/telegram";
+import {
+  isFolderItem,
+  buildFolderBreadcrumbs,
+  getFolderItems,
+} from "@/lib/item-utils";
 
 export default function Layout() {
   const router = useRouter();
@@ -45,6 +48,7 @@ export default function Layout() {
   const [currentFolderId, setCurrentFolderId] = useState("");
   const [history, setHistory] = useState([""]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Auth guard: verify session marker on mount
   useEffect(() => {
@@ -68,6 +72,7 @@ export default function Layout() {
       setCurrentFolderId("");
       setHistory([""]);
       setHistoryIndex(0);
+      setSearchQuery("");
       return;
     }
 
@@ -76,6 +81,7 @@ export default function Layout() {
     setCurrentFolderId("");
     setHistory([""]);
     setHistoryIndex(0);
+    setSearchQuery("");
 
     async function loadChannelData() {
       try {
@@ -157,44 +163,20 @@ export default function Layout() {
   // Build breadcrumb list
   const breadcrumbs = useMemo(() => {
     if (!activeChannel) return [];
-    const list = [{ id: "", name: activeChannel.name }];
-    if (!currentFolderId) return list;
-
-    // Walk up the parent chain
-    const folderChain = [];
-    let currentId = currentFolderId;
-    let guard = 0;
-
-    while (currentId && guard < 50) {
-      guard++;
-      const folder = items.find(
-        (i) =>
-          i.id === currentId &&
-          (i.itemType === "folder" ||
-            i.type === "folder" ||
-            i.item_type === "folder"),
-      );
-      if (!folder) break;
-      folderChain.unshift({ id: folder.id, name: folder.name });
-      currentId = folder.parentId || folder.parent_id || "";
-    }
-
-    return [...list, ...folderChain];
+    return buildFolderBreadcrumbs(items, currentFolderId, activeChannel.name);
   }, [activeChannel, currentFolderId, items]);
 
   // Current folder name for action bar
   const currentFolderName = useMemo(() => {
     if (!currentFolderId) return activeChannel?.name || "Folder";
-    const cur = items.find((i) => i.id === currentFolderId);
+    const cur = items.find((i) => i.id === currentFolderId && isFolderItem(i));
     return cur?.name || "Folder";
   }, [currentFolderId, activeChannel, items]);
 
-  // Filter items for the current folder
+  // Filter items for the current folder and search
   const displayedItems = useMemo(() => {
-    return items.filter(
-      (item) => (item.parentId || item.parent_id || "") === currentFolderId,
-    );
-  }, [items, currentFolderId]);
+    return getFolderItems(items, currentFolderId, searchQuery);
+  }, [items, currentFolderId, searchQuery]);
 
   const isEmpty = displayedItems.length === 0;
 
@@ -286,10 +268,7 @@ export default function Layout() {
       );
     });
 
-    const isFolder =
-      item.itemType === "folder" ||
-      item.type === "folder" ||
-      item.item_type === "folder";
+    const isFolder = isFolderItem(item);
 
     toastManager.promise(promise, {
       loading: {
@@ -312,11 +291,7 @@ export default function Layout() {
   };
 
   const handleOpenItem = (item) => {
-    const isFolder =
-      item.itemType === "folder" ||
-      item.type === "folder" ||
-      item.item_type === "folder";
-    if (isFolder) {
+    if (isFolderItem(item)) {
       navigateToFolder(item.id);
     }
   };
@@ -324,8 +299,13 @@ export default function Layout() {
   return (
     <SidebarProvider>
       <HubSidebar
+        activeChannel={activeChannel}
         activeChannelId={activeChannel?.channel_id}
         onChannelChange={setActiveChannel}
+        onCreateFolder={handleCreateFolder}
+        channelLoading={loading}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
       />
       <Tabs className="flex-1" value={view} onValueChange={setView}>
         <SidebarInset>
@@ -354,14 +334,18 @@ export default function Layout() {
             <Empty className="h-[calc(100vh-80px)]">
               <EmptyHeader>
                 <img
-                  src="https://i.giphy.com/YdhvjTeL83pNS.webp"
+                  src="https://i.giphy.com/Az1CJ2MEjmsp2.webp"
                   alt="Empty folder"
-                  className="size-32 rounded-lg mb-6"
+                  className="h-28 rounded-sm mb-6"
                   draggable={false}
                 />
-                <EmptyTitle>Folder is Empty</EmptyTitle>
+                <EmptyTitle>
+                  {searchQuery ? "No Results Found" : "Folder is Empty"}
+                </EmptyTitle>
                 <EmptyDescription>
-                  No files or folders yet.
+                  {searchQuery
+                    ? `No items matching "${searchQuery}".`
+                    : "No files or folders yet."}
                 </EmptyDescription>
               </EmptyHeader>
               <EmptyContent>

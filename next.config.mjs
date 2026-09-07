@@ -5,8 +5,6 @@ const internalHost = process.env.TAURI_DEV_HOST || "localhost";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactCompiler: true,
-  cacheComponents: true,
-  partialPrefetching: true,
   output: "export",
   images: {
     unoptimized: true,
